@@ -1,0 +1,19 @@
+{
+	"id": "item-linking",
+	"title": "Item Linking",
+	"description": "",
+	"version": "1.0.0",
+	"authors": [
+		{
+			"name": "Elizeu Angelo",
+			"discord": "Magus#9576"
+		}
+	],
+	"esmodules": ["./main.js"],
+	"compatibility": {
+		"minimum": 10,
+		"verified": "10.291"
+	},
+	"manifest": "https://raw.githubusercontent.com/elizeuangelo/fvtt-module-item-linking/master/module.json",
+	"download": "https://github.com/elizeuangelo/fvtt-module-item-linking/releases/latest/download/item-linking.zip"
+}
