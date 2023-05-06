@@ -8,6 +8,14 @@ declare global {
 	interface Window {
 		ForgeVTT: any;
 	}
+	class ItemExtended extends Item {
+		static schema: any;
+		baseItem: string | null;
+		documentLink: boolean;
+		itemData: any;
+		reset: any;
+		get isLinked(): boolean;
+	}
 }
 
 export {};
