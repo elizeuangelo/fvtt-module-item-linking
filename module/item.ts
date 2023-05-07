@@ -1,53 +1,27 @@
-/**
- * Item Linking Implementation
- */
+import { getFlag } from './flags.js';
+import { findItemFromUUID } from './packs.js';
+import { systems } from './system.js';
 
-import { findItem } from './packs.js';
+export let derivations = 0;
+function prepareDerivedData() {
+	original.call(this);
+	if (getFlag(this, 'isLinked') !== true) return;
 
-/**
- * Create a synthetic Actor using a provided Token instance
- * If the Token data is linked, return the true Actor document
- * If the Token data is not linked, create a synthetic Actor using the Token's actorData override
- */
-async function getItem(this: ItemExtended) {
-	const linked = this.isLinked && this.baseItem !== null;
-	const baseItem = linked ? (await findItem(this.baseItem as string)) ?? this : this;
-	if (linked) return baseItem;
-
-	// Get base item data
-	const cls = getDocumentClass('Item') as typeof ItemExtended;
-	const itemData = baseItem.toObject();
-
-	// Clean and validate the override data
-	const overrides = cls.schema.clean(this.itemData, { partial: true });
-	const error = cls.schema.validate(this.itemData, { partial: true });
-	if (!error) foundry.utils.mergeObject(itemData, overrides);
-
-	// Create a synthetic item
-	const item = new cls(itemData);
-	item.reset(); // FIXME why is this necessary?
-	return item;
+	findItemFromUUID(getFlag(this, 'baseItem')!).then((baseItem) => {
+		if (baseItem === null) return;
+		const system = mergeObject({}, baseItem._source.system);
+		const keep = systems[game.system.id];
+		if (keep !== undefined) {
+			const map = Object.fromEntries(keep.map((k) => [k, foundry.utils.getProperty(this._source, k)]));
+			mergeObject(system, map);
+		}
+		this.system = system;
+		derivations++;
+	});
 }
 
-Object.defineProperties(Item.prototype, {
-	baseItem: {
-		value: null,
-		writable: true,
-	},
-	documentLink: {
-		value: false,
-		writable: true,
-	},
-	isLinked: {
-		get: function isLinked() {
-			return this.documentLink;
-		},
-	},
-	itemData: {
-		value: {},
-		writable: true,
-	},
-	getItem: {
-		value: getItem,
-	},
+let original;
+Hooks.once('setup', () => {
+	original = CONFIG.Item.documentClass.prototype.prepareDerivedData;
+	CONFIG.Item.documentClass.prototype.prepareDerivedData = prepareDerivedData;
 });

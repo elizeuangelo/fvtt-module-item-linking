@@ -8,13 +8,16 @@ declare global {
 	interface Window {
 		ForgeVTT: any;
 	}
-	class ItemExtended extends Item {
-		static schema: any;
+	interface ModuleFlags {
 		baseItem: string | null;
-		documentLink: boolean;
-		itemData: any;
-		reset: any;
-		get isLinked(): boolean;
+		isLinked: boolean;
+	}
+	class ItemExtended extends Item {
+		_source: any;
+		updateSource(changes: Object, options?: Object): Object;
+		flags: {
+			'item-linking'?: ModuleFlags;
+		};
 	}
 }
 

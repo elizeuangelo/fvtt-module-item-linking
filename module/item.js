@@ -1,38 +1,26 @@
-import { findItem } from './packs.js';
-async function getItem() {
-    const linked = this.isLinked && this.baseItem !== null;
-    const baseItem = linked ? (await findItem(this.baseItem)) ?? this : this;
-    if (linked)
-        return baseItem;
-    const cls = getDocumentClass('Item');
-    const itemData = baseItem.toObject();
-    const overrides = cls.schema.clean(this.itemData, { partial: true });
-    const error = cls.schema.validate(this.itemData, { partial: true });
-    if (!error)
-        foundry.utils.mergeObject(itemData, overrides);
-    const item = new cls(itemData);
-    item.reset();
-    return item;
+import { getFlag } from './flags.js';
+import { findItemFromUUID } from './packs.js';
+import { systems } from './system.js';
+export let derivations = 0;
+function prepareDerivedData() {
+    original.call(this);
+    if (getFlag(this, 'isLinked') !== true)
+        return;
+    findItemFromUUID(getFlag(this, 'baseItem')).then((baseItem) => {
+        if (baseItem === null)
+            return;
+        const system = mergeObject({}, baseItem._source.system);
+        const keep = systems[game.system.id];
+        if (keep !== undefined) {
+            const map = Object.fromEntries(keep.map((k) => [k, foundry.utils.getProperty(this._source, k)]));
+            mergeObject(system, map);
+        }
+        this.system = system;
+        derivations++;
+    });
 }
-Object.defineProperties(Item.prototype, {
-    baseItem: {
-        value: null,
-        writable: true,
-    },
-    documentLink: {
-        value: false,
-        writable: true,
-    },
-    isLinked: {
-        get: function isLinked() {
-            return this.documentLink;
-        },
-    },
-    itemData: {
-        value: {},
-        writable: true,
-    },
-    getItem: {
-        value: getItem,
-    },
+let original;
+Hooks.once('setup', () => {
+    original = CONFIG.Item.documentClass.prototype.prepareDerivedData;
+    CONFIG.Item.documentClass.prototype.prepareDerivedData = prepareDerivedData;
 });
