@@ -10,6 +10,7 @@
 		}
 	],
 	"esmodules": ["./main.js"],
+	"styles": ["./style.css"],
 	"compatibility": {
 		"minimum": 10,
 		"verified": "10.291"

@@ -14,6 +14,7 @@ declare global {
 	}
 	class ItemExtended extends Item {
 		_source: any;
+		system: any;
 		updateSource(changes: Object, options?: Object): Object;
 		flags: {
 			'item-linking'?: ModuleFlags;

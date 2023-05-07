@@ -1,4 +1,3 @@
-import { getFlag } from './flags.js';
 export function findItemFromUUID(uuid) {
     return fromUuid(uuid);
 }
@@ -10,16 +9,6 @@ export function findCompendiumFromItemID(id) {
     }
     return null;
 }
-export async function stringifyItem(item) {
-    let baseItem = null;
-    while (getFlag(item, 'baseItem') !== null) {
-        baseItem = await findItemFromUUID(getFlag(item, 'baseItem'));
-        if (baseItem === null)
-            break;
-        item = baseItem;
-    }
-    return item.uuid;
-}
 export let PACKS = [];
 function getPacksByType() {
     const type = 'Item';
@@ -29,5 +18,11 @@ function getPacksByType() {
             packs.push(pack);
     }
     return (PACKS = packs);
+}
+export function getItemsFromCompendiumsByType(compendium, type) {
+    return compendium.index.filter((i) => i.type === type);
+}
+export function createUuidFromIndex(pack, itemId) {
+    return `Compendium.${pack.metadata.id}.${itemId}`;
 }
 Hooks.on('renderCompendiumDirectory', getPacksByType);
