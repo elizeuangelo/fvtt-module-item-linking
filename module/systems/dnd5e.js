@@ -1,7 +1,17 @@
 import { getFlag } from '../flags.js';
 import { PACKS, createUuidFromIndex, findItemFromUUID, getItemsFromCompendiumsByType } from '../packs.js';
 import { MODULE, getSetting } from '../settings.js';
-export const KEEP = ['uses.value', 'recharge.charged', 'quantity', 'proficient', 'identified', 'equipped', 'attunement', 'hp.value', 'hp.conditions'];
+export const KEEP = [
+    'uses.value',
+    'recharge.charged',
+    'quantity',
+    'proficient',
+    'identified',
+    'equipped',
+    'attunement',
+    'hp.value',
+    'hp.conditions',
+];
 function createOptionsFromPack(pack, type, selected) {
     function createOption(value, title, selected) {
         return `<option value="${value}" ${selected ? 'selected' : ''}>${title}</option>`;
@@ -17,6 +27,23 @@ function createOptionsFromPack(pack, type, selected) {
         .join('')}
         </optgroup>
     `;
+}
+function onSearchFilter(event, query, rgx, html) {
+    const visibleGroups = new Set();
+    for (const entry of html.querySelectorAll('option')) {
+        if (!query) {
+            entry.classList.remove('hidden');
+            continue;
+        }
+        const label = entry.textContent;
+        const match = rgx.test(SearchFilter.cleanQuery(label));
+        entry.classList.toggle('hidden', !match);
+        if (match)
+            visibleGroups.add(entry.parentElement);
+    }
+    for (const group of html.querySelectorAll('optgroup')) {
+        group.classList.toggle('hidden', query && !visibleGroups.has(group));
+    }
 }
 function renderItemSheet(sheet, html) {
     const item = sheet.document;
@@ -35,7 +62,9 @@ function renderItemSheet(sheet, html) {
                 <input type="checkbox" name="flags.${MODULE}.isLinked" style="display:none" ${linked ? 'checked' : ''} />
                 <li>
                     <select name="flags.${MODULE}.baseItem" ${game.user.isGM && linked ? '' : 'disabled'}>
-                        ${brokenLink ? `<option value="" selected}>Unknown item</option>` : ''}
+                        ${brokenLink
+        ? `<optgroup label="Broken Link"><option value="" selected}>Unknown item</option></optgroup>`
+        : ''}
                         ${PACKS.map((pack) => createOptionsFromPack(pack, item.type, getFlag(item, 'baseItem'))).join('')}
                     </select>
                 </li>
@@ -52,7 +81,11 @@ function renderItemSheet(sheet, html) {
                 baseItem?.sheet.render(true);
             });
         }
-        new SearchFilter({ inputSelector: 'input[name="search"]', contentSelector: `select[name="flags.${MODULE}.baseItem"]`, initial: '' });
+        new SearchFilter({
+            inputSelector: 'input[name="search"]',
+            contentSelector: `select[name="flags.${MODULE}.baseItem"]`,
+            callback: onSearchFilter,
+        }).bind(html[0]);
     }
     if (!linked)
         return;
