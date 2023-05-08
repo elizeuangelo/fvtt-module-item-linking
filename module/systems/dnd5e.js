@@ -51,7 +51,7 @@ function renderItemSheet(sheet, html) {
         return;
     const linked = getFlag(item, 'isLinked');
     const baseItemId = getFlag(item, 'baseItem');
-    const brokenLink = !Boolean(fromUuidSync(baseItemId));
+    const brokenLink = baseItemId ? !Boolean(fromUuidSync(baseItemId)) : true;
     if (game.user.isGM === false && !linked)
         return;
     const linkText = ['Not Linked', 'Linked', 'Broken Link'];

@@ -8,18 +8,19 @@ function findDerived(itemCompendiumUUID) {
     const registry = Object.entries(derivations);
     return registry.filter(([k, v]) => v === itemCompendiumUUID);
 }
-function updateItem(item) {
-    if (!item.compendium)
+function updateItem(item, changes) {
+    if (!item.compendium) {
         return;
+    }
     const derived = findDerived(item.uuid);
     derived.forEach(async ([k]) => {
         const derivation = await findItemFromUUID(k);
         if (derivation === null)
             return delete derivations[k];
         prepareItemFromBaseItem(derivation, item);
-        if (derivation.sheet?.rendered)
-            derivation.sheet.render(true);
+        derivation.sheet?.render();
     });
+    ui.sidebar.tabs.items.render();
 }
 function prepareItemFromBaseItem(item, baseItem) {
     const system = foundry.utils.deepClone(baseItem._source.system);
@@ -37,7 +38,7 @@ function prepareItemFromBaseItem(item, baseItem) {
 }
 function prepareDerivedData() {
     original.call(this);
-    if (getFlag(this, 'isLinked') !== true)
+    if (getFlag(this, 'isLinked') !== true || !getFlag(this, 'baseItem'))
         return;
     findItemFromUUID(getFlag(this, 'baseItem')).then((baseItem) => {
         if (baseItem === null)
@@ -48,11 +49,14 @@ function prepareDerivedData() {
     });
 }
 function preUpdateItem(item, changes) {
-    if (changes.flags?.[MODULE].isLinked === false) {
+    if (changes.flags?.[MODULE].isLinked === false || changes.flags?.[MODULE].baseItem) {
         const updates = { system: item.system };
         if (getSetting('linkHeader')) {
-            updates.name = item.name;
-            updates.img = item.img;
+            const base = fromUuidSync(changes.flags?.[MODULE].baseItem ?? getFlag(item, 'baseItem')) ?? item;
+            updates.name = base.name;
+            updates.img = base.img;
+            changes.name = base.name;
+            changes.img = base.img;
         }
         item.updateSource(updates);
     }

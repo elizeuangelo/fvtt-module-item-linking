@@ -58,7 +58,7 @@ function renderItemSheet(sheet: ItemSheet, html: JQuery) {
 
 	const linked = getFlag(item, 'isLinked');
 	const baseItemId = getFlag(item, 'baseItem');
-	const brokenLink = !Boolean(fromUuidSync(baseItemId!));
+	const brokenLink = baseItemId ? !Boolean(fromUuidSync(baseItemId)) : true;
 
 	// Append to Header
 	// Hide linking if user is not GM and item is unlinked
