@@ -3,11 +3,11 @@ import { findItemFromUUID } from './packs.js';
 import { MODULE, getSetting } from './settings.js';
 import { KEEP_PROPERTIES } from './system.js';
 
-export const derivations: Record<string, string> = {};
+export const derivations: Map<ItemExtended, string> = new Map();
 let original;
 
 function findDerived(itemCompendiumUUID: string) {
-	const registry = Object.entries(derivations);
+	const registry = [...derivations.entries()];
 	return registry.filter(([k, v]) => v === itemCompendiumUUID);
 }
 
@@ -18,9 +18,8 @@ function updateItem(item, changes) {
 	const derived = findDerived(item.uuid);
 
 	// Updates Every Item Related to the UUID
-	derived.forEach(async ([k]) => {
-		const derivation = await findItemFromUUID(k);
-		if (derivation === null) return delete derivations[k];
+	derived.forEach(async ([derivation]) => {
+		if (derivation === null) return derivations.delete(derivation);
 		prepareItemFromBaseItem(derivation, item);
 		derivation.sheet?.render();
 	});
@@ -43,7 +42,7 @@ function prepareItemFromBaseItem(item: ItemExtended, baseItem: ItemExtended) {
 		item.img = baseItem.img;
 	}
 
-	derivations[item.uuid] = baseItem.uuid;
+	if (item.id !== baseItem.id) derivations.set(item, baseItem.uuid);
 }
 
 function prepareDerivedData() {
@@ -72,12 +71,26 @@ function preUpdateItem(item: ItemExtended, changes: any) {
 }
 
 function deleteItem(item: ItemExtended) {
-	if (getFlag(item, 'isLinked') && getFlag(item, 'baseItem')) {
-		delete derivations[item.uuid];
+	const baseItemId = getFlag(item, 'baseItem');
+	if (getFlag(item, 'isLinked') && baseItemId) {
+		derivations.delete(item);
+		findItemFromUUID(baseItemId).then((item) => {
+			if (item) item.compendium.render();
+		});
+	}
+}
+
+function createItem(item) {
+	const baseItemId = getFlag(item, 'baseItem');
+	if (getFlag(item, 'isLinked') && baseItemId) {
+		findItemFromUUID(baseItemId).then((item) => {
+			if (item) item.compendium.render();
+		});
 	}
 }
 
 /** -------------------------------------------- */
+Hooks.on('createItem', createItem);
 Hooks.on('preUpdateItem', preUpdateItem);
 Hooks.on('updateItem', updateItem);
 Hooks.on('deleteItem', deleteItem);
