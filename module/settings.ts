@@ -31,14 +31,22 @@ const settings = {
 	//	type: Boolean,
 	//	default: true,
 	//},
-	//sizeOrder: {
-	//	name: 'Smaller Tokens in Front',
-	//	hint: 'Takes smaller tokens in front of bigger ones, for better management in the grid.',
-	//	scope: 'world',
-	//	config: true,
-	//	type: Boolean,
-	//	default: true,
-	//},
+	linkHeader: {
+		name: 'Link Header',
+		hint: 'Linked items will also have their names and images linked.',
+		scope: 'world',
+		config: true,
+		type: Boolean,
+		default: false,
+	},
+	hideUselessInformation: {
+		name: 'Hide Useless Information',
+		hint: 'Will hide empty information on linked items.',
+		scope: 'world',
+		config: true,
+		type: Boolean,
+		default: false,
+	},
 } as const;
 
 export type Settings = typeof settings;

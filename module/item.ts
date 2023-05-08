@@ -1,5 +1,6 @@
 import { getFlag } from './flags.js';
 import { findItemFromUUID } from './packs.js';
+import { MODULE, getSetting } from './settings.js';
 import { KEEP_PROPERTIES } from './system.js';
 
 export const derivations: Record<string, string> = {};
@@ -31,6 +32,13 @@ function prepareItemFromBaseItem(item: ItemExtended, baseItem: ItemExtended) {
 		mergeObject(system, map);
 	}
 	item.system = system;
+
+	// Link Header is configured so
+	if (getSetting('linkHeader')) {
+		item.name = baseItem.name;
+		item.img = baseItem.img;
+	}
+
 	derivations[item.uuid] = baseItem.uuid;
 }
 
@@ -45,7 +53,19 @@ function prepareDerivedData() {
 	});
 }
 
+function preUpdateItem(item: ItemExtended, changes: any) {
+	if (changes.flags?.[MODULE].isLinked === false) {
+		const updates: { system: any; name?: string; img?: string } = { system: item.system };
+		if (getSetting('linkHeader')) {
+			updates.name = item.name!;
+			updates.img = item.img!;
+		}
+		item.updateSource(updates);
+	}
+}
+
 /** -------------------------------------------- */
+Hooks.on('preUpdateItem', preUpdateItem);
 Hooks.on('updateItem', updateItem);
 Hooks.once('setup', () => {
 	original = CONFIG.Item.documentClass.prototype.prepareDerivedData;

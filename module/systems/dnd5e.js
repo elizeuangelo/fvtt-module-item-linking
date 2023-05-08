@@ -1,6 +1,6 @@
 import { getFlag } from '../flags.js';
-import { PACKS, createUuidFromIndex, getItemsFromCompendiumsByType } from '../packs.js';
-import { MODULE } from '../settings.js';
+import { PACKS, createUuidFromIndex, findItemFromUUID, getItemsFromCompendiumsByType } from '../packs.js';
+import { MODULE, getSetting } from '../settings.js';
 export const KEEP = ['uses.value', 'recharge.charged', 'quantity', 'proficient', 'identified', 'equipped', 'attunement', 'hp.value', 'hp.conditions'];
 function createOptionsFromPack(pack, type, selected) {
     function createOption(value, title, selected) {
@@ -23,19 +23,22 @@ function renderItemSheet(sheet, html) {
     if (item.compendium)
         return;
     const linked = getFlag(item, 'isLinked');
+    const baseItemId = getFlag(item, 'baseItem');
+    const brokenLink = !Boolean(fromUuidSync(baseItemId));
     if (game.user.isGM === false && !linked)
         return;
-    const linkText = ['Not Linked', 'Linked'];
+    const linkText = ['Not Linked', 'Linked', 'Broken Link'];
     const row = $(`
-            <ul class="summary flexrow">
-                <li class="item-link">${linkText[+linked]}</li>
+            <ul class="summary link flexrow">
+                <li class="item-link">${linkText[+linked + +(brokenLink && linked)]}</li>
+                ${linked ? '<input type="search" name="search" placeholder="Filter" />' : ''}
                 <input type="checkbox" name="flags.${MODULE}.isLinked" style="display:none" ${linked ? 'checked' : ''} />
                 <li>
                     <select name="flags.${MODULE}.baseItem" ${game.user.isGM && linked ? '' : 'disabled'}>
+                        ${brokenLink ? `<option value="" selected}>Unknown item</option>` : ''}
                         ${PACKS.map((pack) => createOptionsFromPack(pack, item.type, getFlag(item, 'baseItem'))).join('')}
                     </select>
                 </li>
-                
             </ul>
     `);
     html.find('div.header-details').append(row);
@@ -43,6 +46,13 @@ function renderItemSheet(sheet, html) {
         const link = row.find('.item-link');
         const checkbox = row.find(`input[name="flags.${MODULE}.isLinked"]`);
         link.on('click', () => checkbox.trigger('click'));
+        if (baseItemId && brokenLink === false) {
+            link.on('contextmenu', async () => {
+                const baseItem = await findItemFromUUID(baseItemId);
+                baseItem?.sheet.render(true);
+            });
+        }
+        new SearchFilter({ inputSelector: 'input[name="search"]', contentSelector: `select[name="flags.${MODULE}.baseItem"]`, initial: '' });
     }
     if (!linked)
         return;
@@ -50,7 +60,15 @@ function renderItemSheet(sheet, html) {
     const KEEP_PROP = KEEP.map((k) => 'system.' + k);
     const filter = (input) => !(!rgx.exec(input.name) || KEEP_PROP.includes(input.name));
     $([...html.find('input'), ...html.find('select')].filter(filter)).attr('disabled', '');
+    if (getSetting('linkHeader')) {
+        html.find('input[name="name"]').attr('disabled', '');
+        html.find('img.profile').off('click');
+    }
     const deletions = ['a.editor-edit', 'a.effect-control'];
     deletions.forEach((deletion) => html.find(deletion).remove());
+    if (getSetting('hideUselessInformation')) {
+        const deletions = ['input[type=checkbox][disabled]:not(:checked)'];
+        deletions.forEach((deletion) => html.find(deletion).parent().remove());
+    }
 }
 Hooks.on('renderItemSheet', renderItemSheet);
