@@ -71,9 +71,16 @@ function preUpdateItem(item: ItemExtended, changes: any) {
 	}
 }
 
+function deleteItem(item: ItemExtended) {
+	if (getFlag(item, 'isLinked') && getFlag(item, 'baseItem')) {
+		delete derivations[item.uuid];
+	}
+}
+
 /** -------------------------------------------- */
 Hooks.on('preUpdateItem', preUpdateItem);
 Hooks.on('updateItem', updateItem);
+Hooks.on('deleteItem', deleteItem);
 Hooks.once('setup', () => {
 	original = CONFIG.Item.documentClass.prototype.prepareDerivedData;
 	CONFIG.Item.documentClass.prototype.prepareDerivedData = prepareDerivedData;

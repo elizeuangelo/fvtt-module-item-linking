@@ -1,4 +1,14 @@
-.dnd5e.sheet .sheet-header .summary a.item-link {
+.dnd5e.sheet .sheet-header .link {
+    align-items: center;
+}
+
+.link-derivations {
+    position: absolute;
+    right: 0;
+    color: red;
+}
+
+/*.dnd5e.sheet .sheet-header .summary a.item-link {
     height: calc(100% - 6px);
     float: left;
     margin: 2px 0;
@@ -6,8 +16,4 @@
     border-right: 2px groove #eeede0;
     line-height: 34px;
     color: #4b4a44;
-}
-
-.dnd5e.sheet .sheet-header .link {
-    align-items: center;
-}
+}*/
