@@ -121,7 +121,7 @@ function renderItemSheet(sheet: ItemSheet, html: JQuery) {
 	}
 
 	// Delete problematic fields
-	const deletions = ['a.editor-edit', 'a.effect-control'];
+	const deletions = ['a.editor-edit', 'div.item-controls'];
 	deletions.forEach((deletion) => html.find(deletion).remove());
 
 	// Delete Useless Fields, if configured so

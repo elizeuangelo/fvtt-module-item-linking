@@ -99,7 +99,7 @@ function renderItemSheet(sheet, html) {
         html.find('input[name="name"]').attr('disabled', '');
         html.find('img.profile').off('click');
     }
-    const deletions = ['a.editor-edit', 'a.effect-control'];
+    const deletions = ['a.editor-edit', 'div.item-controls'];
     deletions.forEach((deletion) => html.find(deletion).remove());
     if (getSetting('hideUselessInformation')) {
         html.find('input[type=checkbox][disabled]:not(:checked)').parent().remove();
