@@ -17,6 +17,8 @@ function createOptionsFromPack(pack, type, selected) {
         return `<option value="${value}" ${selected ? 'selected' : ''}>${title}</option>`;
     }
     const options = getItemsFromCompendiumsByType(pack, type);
+    if (options.length === 0)
+        return '';
     return `
         <optgroup label="${pack.metadata.label}">
             ${options
@@ -100,8 +102,20 @@ function renderItemSheet(sheet, html) {
     const deletions = ['a.editor-edit', 'a.effect-control'];
     deletions.forEach((deletion) => html.find(deletion).remove());
     if (getSetting('hideUselessInformation')) {
-        const deletions = ['input[type=checkbox][disabled]:not(:checked)'];
-        deletions.forEach((deletion) => html.find(deletion).parent().remove());
+        html.find('input[type=checkbox][disabled]:not(:checked)').parent().remove();
+        if (item.type === 'weapon') {
+            const weaponProperties = html.find('div.weapon-properties');
+            if (weaponProperties[0].childElementCount < 2)
+                weaponProperties.remove();
+        }
+        html[0].querySelectorAll('.form-group').forEach((v, idx) => {
+            const input = v.querySelector('input:not([value=""])');
+            const selection = v.querySelector('select option[selected][value]:not([value=""])');
+            const tag = v.querySelector('li.tag');
+            if (input || selection || tag)
+                return;
+            v.remove();
+        });
     }
 }
 Hooks.on('renderItemSheet', renderItemSheet);

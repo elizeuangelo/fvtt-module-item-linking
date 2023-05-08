@@ -8,7 +8,7 @@ function findDerived(itemCompendiumUUID) {
     const registry = [...derivations.entries()];
     return registry.filter(([k, v]) => v === itemCompendiumUUID);
 }
-function updateItem(item, changes) {
+function updateItem(item) {
     if (!item.compendium) {
         return;
     }

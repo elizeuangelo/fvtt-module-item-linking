@@ -11,7 +11,7 @@ function findDerived(itemCompendiumUUID: string) {
 	return registry.filter(([k, v]) => v === itemCompendiumUUID);
 }
 
-function updateItem(item, changes) {
+function updateItem(item) {
 	if (!item.compendium) {
 		return;
 	}

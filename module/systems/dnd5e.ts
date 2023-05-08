@@ -19,6 +19,7 @@ function createOptionsFromPack(pack, type: string, selected: string | null) {
 		return /*html*/ `<option value="${value}" ${selected ? 'selected' : ''}>${title}</option>`;
 	}
 	const options = getItemsFromCompendiumsByType(pack, type);
+	if (options.length === 0) return '';
 	return /*html*/ `
         <optgroup label="${pack.metadata.label}">
             ${options
@@ -125,8 +126,26 @@ function renderItemSheet(sheet: ItemSheet, html: JQuery) {
 
 	// Delete Useless Fields, if configured so
 	if (getSetting('hideUselessInformation')) {
-		const deletions = ['input[type=checkbox][disabled]:not(:checked)'];
-		deletions.forEach((deletion) => html.find(deletion).parent().remove());
+		//const deletions = ['input[type=checkbox][disabled]:not(:checked)'];
+		//deletions.forEach((deletion) => html.find(deletion).parent().remove());
+
+		// Remove Properties Checkboxes
+		html.find('input[type=checkbox][disabled]:not(:checked)').parent().remove();
+
+		// If there are no properties, remove the section
+		if (item.type === 'weapon') {
+			const weaponProperties = html.find('div.weapon-properties');
+			if (weaponProperties[0].childElementCount < 2) weaponProperties.remove();
+		}
+
+		// For every Form Group, remove if empty content
+		html[0].querySelectorAll('.form-group').forEach((v, idx) => {
+			const input = v.querySelector('input:not([value=""])');
+			const selection = v.querySelector('select option[selected][value]:not([value=""])');
+			const tag = v.querySelector('li.tag');
+			if (input || selection || tag) return;
+			v.remove();
+		});
 	}
 }
 
