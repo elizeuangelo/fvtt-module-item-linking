@@ -43,4 +43,4 @@ jobs:
                   draft: false
                   prerelease: false
                   token: ${{ secrets.GITHUB_TOKEN }}
-                  artifacts: './item-linking.zip'
+                  artifacts: './module.json,./item-linking.zip'
