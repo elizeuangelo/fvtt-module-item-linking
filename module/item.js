@@ -33,8 +33,9 @@ function prepareItemFromBaseItem(item, baseItem) {
         item.name = baseItem.name;
         item.img = baseItem.img;
     }
-    if (item.id !== baseItem.id)
+    if (item.id !== baseItem.id && (item.parent === null || item.parent.id !== null)) {
         derivations.set(item, baseItem.uuid);
+    }
 }
 function prepareDerivedData() {
     original.call(this);
@@ -61,7 +62,7 @@ function preUpdateItem(item, changes) {
         item.updateSource(updates);
     }
 }
-function deleteItem(item) {
+export function deleteItem(item) {
     const baseItemId = getFlag(item, 'baseItem');
     if (getFlag(item, 'isLinked') && baseItemId) {
         derivations.delete(item);

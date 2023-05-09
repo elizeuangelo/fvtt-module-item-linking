@@ -42,7 +42,9 @@ function prepareItemFromBaseItem(item: ItemExtended, baseItem: ItemExtended) {
 		item.img = baseItem.img;
 	}
 
-	if (item.id !== baseItem.id) derivations.set(item, baseItem.uuid);
+	if (item.id !== baseItem.id && (item.parent === null || item.parent.id !== null)) {
+		derivations.set(item, baseItem.uuid);
+	}
 }
 
 function prepareDerivedData() {
@@ -70,7 +72,7 @@ function preUpdateItem(item: ItemExtended, changes: any) {
 	}
 }
 
-function deleteItem(item: ItemExtended) {
+export function deleteItem(item: ItemExtended) {
 	const baseItemId = getFlag(item, 'baseItem');
 	if (getFlag(item, 'isLinked') && baseItemId) {
 		derivations.delete(item);
