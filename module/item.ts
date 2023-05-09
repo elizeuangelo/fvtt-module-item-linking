@@ -4,6 +4,7 @@ import { MODULE, getSetting } from './settings.js';
 import { KEEP_PROPERTIES } from './system.js';
 
 export const derivations: Map<ItemExtended, string> = new Map();
+export const derivationsIds: Set<string> = new Set();
 let original;
 
 function findDerived(itemCompendiumUUID: string) {
@@ -15,6 +16,7 @@ function updateItem(item, changes) {
 	if (!item.compendium) {
 		if (changes.flags?.[MODULE]?.isLinked === false) {
 			derivations.delete(item);
+			derivationsIds.delete(item.id);
 		}
 		const baseItemId = getFlag(item, 'baseItem');
 		if (baseItemId) {
@@ -26,8 +28,8 @@ function updateItem(item, changes) {
 
 	// Updates Every Item Related to the UUID
 	derived.forEach(async ([derivation]) => {
-		if (derivation === null) return derivations.delete(derivation);
 		prepareItemFromBaseItem(derivation, item);
+		derivation.parent?.sheet?.render();
 		derivation.sheet?.render();
 	});
 
@@ -50,7 +52,10 @@ function prepareItemFromBaseItem(item: ItemExtended, baseItem: ItemExtended) {
 	}
 
 	if (item.id !== baseItem.id && (item.parent === null || item.parent.id !== null)) {
-		derivations.set(item, baseItem.uuid);
+		if (!derivationsIds.has(item.id!)) {
+			derivations.set(item, baseItem.uuid);
+			derivationsIds.add(item.id!);
+		}
 	}
 }
 
@@ -82,6 +87,7 @@ function preUpdateItem(item: ItemExtended, changes: any) {
 export function deleteItem(item: ItemExtended) {
 	const baseItemId = getFlag(item, 'baseItem');
 	if (getFlag(item, 'isLinked') && baseItemId) {
+		derivationsIds.delete(item.id!);
 		derivations.delete(item);
 		findItemFromUUID(baseItemId).then((item) => {
 			if (item) item.compendium.render();

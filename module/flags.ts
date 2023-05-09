@@ -14,11 +14,10 @@ function preCreateItem(item: ItemExtended) {
 		baseItem: null,
 		isLinked: false,
 	};
-	const isLinked = moduleFlags.isLinked;
 	const isCompendium = Boolean(item.compendium);
 
 	if (isCompendium === false && item.id) {
-		if (isLinked === undefined) {
+		if (!moduleFlags.isLinked && !moduleFlags.baseItem) {
 			const compendium = findCompendiumFromItemID(item.id);
 			if (compendium) {
 				moduleFlags.baseItem = 'Compendium.' + compendium.metadata.id + '.' + item.id;

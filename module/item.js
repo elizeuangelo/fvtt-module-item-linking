@@ -3,6 +3,7 @@ import { findItemFromUUID } from './packs.js';
 import { MODULE, getSetting } from './settings.js';
 import { KEEP_PROPERTIES } from './system.js';
 export const derivations = new Map();
+export const derivationsIds = new Set();
 let original;
 function findDerived(itemCompendiumUUID) {
     const registry = [...derivations.entries()];
@@ -12,6 +13,7 @@ function updateItem(item, changes) {
     if (!item.compendium) {
         if (changes.flags?.[MODULE]?.isLinked === false) {
             derivations.delete(item);
+            derivationsIds.delete(item.id);
         }
         const baseItemId = getFlag(item, 'baseItem');
         if (baseItemId) {
@@ -21,9 +23,8 @@ function updateItem(item, changes) {
     }
     const derived = findDerived(item.uuid);
     derived.forEach(async ([derivation]) => {
-        if (derivation === null)
-            return derivations.delete(derivation);
         prepareItemFromBaseItem(derivation, item);
+        derivation.parent?.sheet?.render();
         derivation.sheet?.render();
     });
     ui.sidebar.tabs.items.render();
@@ -41,7 +42,10 @@ function prepareItemFromBaseItem(item, baseItem) {
         item.img = baseItem.img;
     }
     if (item.id !== baseItem.id && (item.parent === null || item.parent.id !== null)) {
-        derivations.set(item, baseItem.uuid);
+        if (!derivationsIds.has(item.id)) {
+            derivations.set(item, baseItem.uuid);
+            derivationsIds.add(item.id);
+        }
     }
 }
 function prepareDerivedData() {
@@ -72,6 +76,7 @@ function preUpdateItem(item, changes) {
 export function deleteItem(item) {
     const baseItemId = getFlag(item, 'baseItem');
     if (getFlag(item, 'isLinked') && baseItemId) {
+        derivationsIds.delete(item.id);
         derivations.delete(item);
         findItemFromUUID(baseItemId).then((item) => {
             if (item)
