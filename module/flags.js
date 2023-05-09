@@ -7,16 +7,14 @@ export function setFlag(item, name, value) {
     return game.settings.set(MODULE, name, value);
 }
 function preCreateItem(item) {
-    const moduleFlags = {
+    const moduleFlags = item._source.flags['item-linking'] || {
         baseItem: null,
         isLinked: false,
     };
-    const isLinked = item._source.flags?.['item-linking']?.isLinked;
+    const isLinked = moduleFlags.isLinked;
     const isCompendium = Boolean(item.compendium);
     if (isCompendium === false && item.id) {
-        if (isLinked)
-            mergeObject(moduleFlags, item._source.flags['item-linking']);
-        else {
+        if (isLinked === undefined) {
             const compendium = findCompendiumFromItemID(item.id);
             if (compendium) {
                 moduleFlags.baseItem = 'Compendium.' + compendium.metadata.id + '.' + item.id;

@@ -10,16 +10,15 @@ export function setFlag<T extends keyof ModuleFlags>(item, name: T, value: Modul
 }
 
 function preCreateItem(item: ItemExtended) {
-	const moduleFlags: ModuleFlags = {
+	const moduleFlags: ModuleFlags = item._source.flags['item-linking'] || {
 		baseItem: null,
 		isLinked: false,
 	};
-	const isLinked = item._source.flags?.['item-linking']?.isLinked;
+	const isLinked = moduleFlags.isLinked;
 	const isCompendium = Boolean(item.compendium);
 
 	if (isCompendium === false && item.id) {
-		if (isLinked) mergeObject(moduleFlags, item._source.flags['item-linking']);
-		else {
+		if (isLinked === undefined) {
 			const compendium = findCompendiumFromItemID(item.id);
 			if (compendium) {
 				moduleFlags.baseItem = 'Compendium.' + compendium.metadata.id + '.' + item.id;
