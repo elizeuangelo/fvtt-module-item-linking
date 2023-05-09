@@ -8,8 +8,15 @@ function findDerived(itemCompendiumUUID) {
     const registry = [...derivations.entries()];
     return registry.filter(([k, v]) => v === itemCompendiumUUID);
 }
-function updateItem(item) {
+function updateItem(item, changes) {
     if (!item.compendium) {
+        if (changes.flags?.[MODULE]?.isLinked === false) {
+            derivations.delete(item);
+        }
+        const baseItemId = getFlag(item, 'baseItem');
+        if (baseItemId) {
+            findItemFromUUID(baseItemId).then((baseItem) => baseItem?.compendium.render());
+        }
         return;
     }
     const derived = findDerived(item.uuid);
