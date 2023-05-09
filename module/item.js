@@ -69,7 +69,7 @@ function preUpdateItem(item, changes) {
             updates[k] = item._source[k];
         });
         if (getSetting('linkHeader')) {
-            const base = fromUuidSync(changes.flags?.[MODULE].baseItem ?? getFlag(item, 'baseItem')) ?? item;
+            const base = fromUuidSync(changes.flags?.[MODULE]?.baseItem ?? getFlag(item, 'baseItem')) ?? item;
             updates.name = base.name;
             updates.img = base.img;
             changes.name = base.name;
