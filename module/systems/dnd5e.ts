@@ -70,7 +70,7 @@ function renderItemSheet(sheet: ItemSheet, html: JQuery) {
 	const row = $(/*html*/ `
             <ul class="summary link flexrow">
                 <li class="item-link">${linkText[+linked + +(brokenLink && linked)]}</li>
-                ${linked ? '<input type="search" name="search" placeholder="Filter" />' : ''}
+                ${linked && game.user!.isGM ? '<input type="search" name="search" placeholder="Filter" />' : ''}
                 <input type="checkbox" name="flags.${MODULE}.isLinked" style="display:none" ${linked ? 'checked' : ''} />
                 <li>
                     <select name="flags.${MODULE}.baseItem" ${game.user!.isGM && linked ? '' : 'disabled'}>
