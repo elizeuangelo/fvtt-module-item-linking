@@ -30,10 +30,10 @@ function updateItem(item, changes) {
     ui.sidebar.tabs.items.render();
 }
 function prepareItemFromBaseItem(item, baseItem) {
-    const system = foundry.utils.deepClone(baseItem._source.system);
+    const system = foundry.utils.deepClone(baseItem.system);
     const keep = KEEP_PROPERTIES;
     if (keep !== undefined) {
-        const map = Object.fromEntries(keep.map((k) => [k, foundry.utils.getProperty(item._source.system, k)]));
+        const map = Object.fromEntries(keep.map((k) => [k, foundry.utils.getProperty(item.system, k)]));
         mergeObject(system, map);
     }
     item.system = system;
@@ -62,7 +62,12 @@ function prepareDerivedData() {
 }
 function preUpdateItem(item, changes) {
     if (changes.flags?.[MODULE].isLinked === false || changes.flags?.[MODULE].baseItem) {
-        const updates = { system: item.system };
+        const updates = {
+            system: item._source.system,
+        };
+        Object.keys(item.collections).forEach((k) => {
+            updates[k] = item._source[k];
+        });
         if (getSetting('linkHeader')) {
             const base = fromUuidSync(changes.flags?.[MODULE].baseItem ?? getFlag(item, 'baseItem')) ?? item;
             updates.name = base.name;

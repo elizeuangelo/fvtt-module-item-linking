@@ -15,6 +15,7 @@ declare global {
 	class ItemExtended extends Item {
 		_source: any;
 		system: any;
+		collections: Record<string, any>;
 		updateSource(changes: Object, options?: Object): Object;
 		flags: {
 			'item-linking'?: ModuleFlags;

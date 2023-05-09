@@ -11,6 +11,8 @@ export const KEEP = [
     'attunement',
     'hp.value',
     'hp.conditions',
+    'isOriginalClass',
+    'skills.value',
 ];
 function createOptionsFromPack(pack, type, selected) {
     function createOption(value, title, selected) {
