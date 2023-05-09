@@ -71,7 +71,7 @@ function prepareDerivedData() {
 }
 
 function preUpdateItem(item: ItemExtended, changes: any) {
-	if (changes.flags?.[MODULE].isLinked === false || changes.flags?.[MODULE].baseItem) {
+	if (changes.flags?.[MODULE]?.isLinked === false || changes.flags?.[MODULE]?.baseItem) {
 		const updates: Record<string, any> = {
 			system: item._source.system,
 		};

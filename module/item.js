@@ -61,7 +61,7 @@ function prepareDerivedData() {
     });
 }
 function preUpdateItem(item, changes) {
-    if (changes.flags?.[MODULE].isLinked === false || changes.flags?.[MODULE].baseItem) {
+    if (changes.flags?.[MODULE]?.isLinked === false || changes.flags?.[MODULE]?.baseItem) {
         const updates = {
             system: item._source.system,
         };
