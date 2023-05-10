@@ -86,17 +86,19 @@ function prepareDerivedData() {
 }
 
 function preUpdateItem(item: ItemExtended, changes: any) {
-	if (changes.flags?.[MODULE]?.isLinked === false || changes.flags?.[MODULE]?.baseItem) {
+	const linked = changes.flags?.[MODULE]?.isLinked;
+	const baseItemId = changes.flags?.[MODULE]?.baseItem;
+	if (linked === false || baseItemId) {
 		const updates: Record<string, any> = {
 			system: item._source.system,
 		};
 
 		// Embedded Items
-		const baseItem = derivations.get(item);
-		if (baseItem) {
+		const oldBaseItem = derivations.get(item);
+		if (linked === false && oldBaseItem) {
 			const embeddedTypes = (item.constructor as any).metadata.embedded || {};
 			for (const collectionName of Object.values(embeddedTypes) as string[]) {
-				updates[collectionName] = baseItem._source[collectionName];
+				updates[collectionName] = oldBaseItem._source[collectionName];
 			}
 		}
 
