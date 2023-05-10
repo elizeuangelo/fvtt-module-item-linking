@@ -77,8 +77,10 @@ function prepareDerivedData() {
 		if (this.sheet?.rendered) this.sheet.render(true);
 	};
 
-	if (derivations[this]?.uuid === baseItemId) {
-		prepare(derivations[this]);
+	const oldBaseItem = derivations.get(this);
+
+	if (oldBaseItem?.uuid === baseItemId) {
+		prepare(derivations.get(this));
 	} else
 		findItemFromUUID(getFlag(this, 'baseItem')!).then((baseItem) => {
 			if (baseItem) prepare(baseItem);
