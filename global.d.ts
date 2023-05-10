@@ -16,6 +16,7 @@ declare global {
 		_source: any;
 		system: any;
 		collections: Record<string, any>;
+		baseItem?: ItemExtended;
 		updateSource(changes: Object, options?: Object): Object;
 		flags: {
 			'item-linking'?: ModuleFlags;

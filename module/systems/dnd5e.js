@@ -80,7 +80,7 @@ function renderItemSheet(sheet, html) {
         const checkbox = row.find(`input[name="flags.${MODULE}.isLinked"]`);
         link.on('click', () => checkbox.trigger('click'));
         if (baseItemId && brokenLink === false) {
-            link.on('contextmenu', async () => {
+            html.find(`select[name="flags.${MODULE}.baseItem"]`).on('contextmenu', async () => {
                 const baseItem = await findItemFromUUID(baseItemId);
                 baseItem?.sheet.render(true);
             });

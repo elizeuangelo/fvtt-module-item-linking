@@ -3,13 +3,13 @@ import { findItemFromUUID } from './packs.js';
 import { MODULE, getSetting } from './settings.js';
 import { KEEP_PROPERTIES } from './system.js';
 
-export const derivations: Map<ItemExtended, string> = new Map();
+export const derivations: Map<ItemExtended, ItemExtended> = new Map();
 export const derivationsIds: Set<string> = new Set();
 let original;
 
-function findDerived(itemCompendiumUUID: string) {
+function findDerived(itemCompendium: ItemExtended) {
 	const registry = [...derivations.entries()];
-	return registry.filter(([k, v]) => v === itemCompendiumUUID);
+	return registry.filter(([k, v]) => v === itemCompendium);
 }
 
 function updateItem(item, changes) {
@@ -17,10 +17,6 @@ function updateItem(item, changes) {
 		if (changes.flags?.[MODULE]?.isLinked === false) {
 			derivations.delete(item);
 			derivationsIds.delete(item.id);
-		}
-		const baseItemId = getFlag(item, 'baseItem');
-		if (baseItemId) {
-			findItemFromUUID(baseItemId).then((baseItem) => baseItem?.compendium.render());
 		}
 		return;
 	}
@@ -45,6 +41,15 @@ function prepareItemFromBaseItem(item: ItemExtended, baseItem: ItemExtended) {
 	}
 	item.system = system;
 
+	// Embedded Items
+	const embeddedTypes = (item.constructor as any).metadata.embedded || {};
+	for (const collectionName of Object.values(embeddedTypes) as string[]) {
+		item[collectionName].clear();
+		for (const [key, value] of baseItem[collectionName].entries()) {
+			item[collectionName].set(key, value);
+		}
+	}
+
 	// Link Header is configured so
 	if (getSetting('linkHeader')) {
 		item.name = baseItem.name;
@@ -52,22 +57,32 @@ function prepareItemFromBaseItem(item: ItemExtended, baseItem: ItemExtended) {
 	}
 
 	if (item.id !== baseItem.id && (item.parent === null || item.parent.id !== null)) {
-		if (!derivationsIds.has(item.id!)) {
-			derivations.set(item, baseItem.uuid);
-			derivationsIds.add(item.id!);
-		}
+		//if (!derivationsIds.has(item.id!)) {
+		const oldBaseItem = derivations.get(item);
+		derivations.set(item, baseItem);
+		oldBaseItem?.compendium.render();
+		derivationsIds.add(item.id!);
+		baseItem.compendium.render();
+		//}
 	}
 }
 
 function prepareDerivedData() {
 	original.call(this);
-	if (getFlag(this, 'isLinked') !== true || !getFlag(this, 'baseItem')) return;
+	const baseItemId = getFlag(this, 'baseItem');
+	if (getFlag(this, 'isLinked') !== true || !baseItemId) return;
 
-	findItemFromUUID(getFlag(this, 'baseItem')!).then((baseItem) => {
-		if (baseItem === null) return;
+	const prepare = (baseItem) => {
 		prepareItemFromBaseItem(this, baseItem);
 		if (this.sheet?.rendered) this.sheet.render(true);
-	});
+	};
+
+	if (derivations[this]?.uuid === baseItemId) {
+		prepare(derivations[this]);
+	} else
+		findItemFromUUID(getFlag(this, 'baseItem')!).then((baseItem) => {
+			if (baseItem) prepare(baseItem);
+		});
 }
 
 function preUpdateItem(item: ItemExtended, changes: any) {
@@ -77,9 +92,13 @@ function preUpdateItem(item: ItemExtended, changes: any) {
 		};
 
 		// Embedded Items
-		Object.keys(item.collections).forEach((k) => {
-			updates[k] = item._source[k];
-		});
+		const baseItem = derivations.get(item);
+		if (baseItem) {
+			const embeddedTypes = (item.constructor as any).metadata.embedded || {};
+			for (const collectionName of Object.values(embeddedTypes) as string[]) {
+				updates[collectionName] = baseItem._source[collectionName];
+			}
+		}
 
 		if (getSetting('linkHeader')) {
 			const base = fromUuidSync(changes.flags?.[MODULE]?.baseItem ?? getFlag(item, 'baseItem')) ?? item;

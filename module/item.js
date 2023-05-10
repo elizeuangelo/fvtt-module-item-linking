@@ -5,19 +5,15 @@ import { KEEP_PROPERTIES } from './system.js';
 export const derivations = new Map();
 export const derivationsIds = new Set();
 let original;
-function findDerived(itemCompendiumUUID) {
+function findDerived(itemCompendium) {
     const registry = [...derivations.entries()];
-    return registry.filter(([k, v]) => v === itemCompendiumUUID);
+    return registry.filter(([k, v]) => v === itemCompendium);
 }
 function updateItem(item, changes) {
     if (!item.compendium) {
         if (changes.flags?.[MODULE]?.isLinked === false) {
             derivations.delete(item);
             derivationsIds.delete(item.id);
-        }
-        const baseItemId = getFlag(item, 'baseItem');
-        if (baseItemId) {
-            findItemFromUUID(baseItemId).then((baseItem) => baseItem?.compendium.render());
         }
         return;
     }
@@ -37,37 +33,56 @@ function prepareItemFromBaseItem(item, baseItem) {
         mergeObject(system, map);
     }
     item.system = system;
+    const embeddedTypes = item.constructor.metadata.embedded || {};
+    for (const collectionName of Object.values(embeddedTypes)) {
+        item[collectionName].clear();
+        for (const [key, value] of baseItem[collectionName].entries()) {
+            item[collectionName].set(key, value);
+        }
+    }
     if (getSetting('linkHeader')) {
         item.name = baseItem.name;
         item.img = baseItem.img;
     }
     if (item.id !== baseItem.id && (item.parent === null || item.parent.id !== null)) {
-        if (!derivationsIds.has(item.id)) {
-            derivations.set(item, baseItem.uuid);
-            derivationsIds.add(item.id);
-        }
+        const oldBaseItem = derivations.get(item);
+        derivations.set(item, baseItem);
+        oldBaseItem?.compendium.render();
+        derivationsIds.add(item.id);
+        baseItem.compendium.render();
     }
 }
 function prepareDerivedData() {
     original.call(this);
-    if (getFlag(this, 'isLinked') !== true || !getFlag(this, 'baseItem'))
+    const baseItemId = getFlag(this, 'baseItem');
+    if (getFlag(this, 'isLinked') !== true || !baseItemId)
         return;
-    findItemFromUUID(getFlag(this, 'baseItem')).then((baseItem) => {
-        if (baseItem === null)
-            return;
+    const prepare = (baseItem) => {
         prepareItemFromBaseItem(this, baseItem);
         if (this.sheet?.rendered)
             this.sheet.render(true);
-    });
+    };
+    if (derivations[this]?.uuid === baseItemId) {
+        prepare(derivations[this]);
+    }
+    else
+        findItemFromUUID(getFlag(this, 'baseItem')).then((baseItem) => {
+            if (baseItem)
+                prepare(baseItem);
+        });
 }
 function preUpdateItem(item, changes) {
     if (changes.flags?.[MODULE]?.isLinked === false || changes.flags?.[MODULE]?.baseItem) {
         const updates = {
             system: item._source.system,
         };
-        Object.keys(item.collections).forEach((k) => {
-            updates[k] = item._source[k];
-        });
+        const baseItem = derivations.get(item);
+        if (baseItem) {
+            const embeddedTypes = item.constructor.metadata.embedded || {};
+            for (const collectionName of Object.values(embeddedTypes)) {
+                updates[collectionName] = baseItem._source[collectionName];
+            }
+        }
         if (getSetting('linkHeader')) {
             const base = fromUuidSync(changes.flags?.[MODULE]?.baseItem ?? getFlag(item, 'baseItem')) ?? item;
             updates.name = base.name;

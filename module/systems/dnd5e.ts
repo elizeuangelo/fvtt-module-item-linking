@@ -92,7 +92,7 @@ function renderItemSheet(sheet: ItemSheet, html: JQuery) {
 		link.on('click', () => checkbox.trigger('click'));
 
 		if (baseItemId && brokenLink === false) {
-			link.on('contextmenu', async () => {
+			html.find(`select[name="flags.${MODULE}.baseItem"]`).on('contextmenu', async () => {
 				const baseItem = await findItemFromUUID(baseItemId);
 				baseItem?.sheet!.render(true);
 			});
