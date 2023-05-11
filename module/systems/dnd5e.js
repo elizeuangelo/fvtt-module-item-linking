@@ -106,7 +106,7 @@ function renderItemSheet(sheet, html) {
     }
     const deletions = ['a.editor-edit', 'div.item-controls', '.damage-control'];
     deletions.forEach((deletion) => html.find(deletion).remove());
-    const fixes = [{ sel: 'input[name="system.uses.max"]', val: sheet.item.system.uses.max }];
+    const fixes = [{ sel: 'input[name="system.uses.max"]', val: sheet.item.system.uses?.max ?? '' }];
     fixes.forEach((f) => html.find(f.sel).val(f.val));
     if (getSetting('hideUselessInformation')) {
         html.find('input[type=checkbox][disabled]:not(:checked)').parent().remove();

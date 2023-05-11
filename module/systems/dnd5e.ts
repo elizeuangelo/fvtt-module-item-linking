@@ -130,7 +130,7 @@ function renderItemSheet(sheet: ItemSheet, html: JQuery) {
 	deletions.forEach((deletion) => html.find(deletion).remove());
 
 	// Fix Broken Fields
-	const fixes = [{ sel: 'input[name="system.uses.max"]', val: (sheet.item as ItemExtended).system.uses.max }];
+	const fixes = [{ sel: 'input[name="system.uses.max"]', val: (sheet.item as ItemExtended).system.uses?.max ?? '' }];
 	fixes.forEach((f) => html.find(f.sel).val(f.val));
 
 	// Delete Useless Fields, if configured so
