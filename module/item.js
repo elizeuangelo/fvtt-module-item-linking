@@ -3,7 +3,6 @@ import { findItemFromUUID } from './packs.js';
 import { MODULE, getSetting } from './settings.js';
 import { KEEP_PROPERTIES } from './system.js';
 export const derivations = new Map();
-export const derivationsIds = new Set();
 let original;
 function findDerived(itemCompendium) {
     const registry = [...derivations.entries()];
@@ -14,7 +13,6 @@ function updateItem(item, changes) {
         if (changes.flags?.[MODULE]?.isLinked === false) {
             const baseItem = derivations.get(item);
             derivations.delete(item);
-            derivationsIds.delete(item.id);
             baseItem?.compendium.render();
         }
         return;
@@ -48,7 +46,6 @@ function prepareItemFromBaseItem(item, baseItem, oldBaseItem) {
     if (item.id && item.id !== baseItem.id && (item.parent === null || item.parent.id !== null)) {
         derivations.set(item, baseItem);
         oldBaseItem?.compendium.render();
-        derivationsIds.add(item.id);
         baseItem.compendium.render();
     }
 }
@@ -99,7 +96,6 @@ function preUpdateItem(item, changes) {
 export function deleteItem(item) {
     const baseItemId = getFlag(item, 'baseItem');
     if (getFlag(item, 'isLinked') && baseItemId) {
-        derivationsIds.delete(item.id);
         derivations.delete(item);
         findItemFromUUID(baseItemId).then((item) => {
             if (item)

@@ -1,10 +1,29 @@
+export const baseItems: Map<string, ItemExtended | null | undefined> = new Map();
+
 /**
  * Returns the item from an Unique Identifier
  * @param uuid
  * @returns
  */
-export function findItemFromUUID(uuid: string) {
-	return fromUuid(uuid) as Promise<ItemExtended | null>;
+export async function findItemFromUUID(uuid: string) {
+	if (baseItems.has(uuid)) {
+		const item = baseItems.get(uuid);
+		if (item === undefined)
+			return new Promise<ItemExtended | null>((resolve) => {
+				Hooks.on('retrieveBaseItem', function check(item: ItemExtended | null, findUuid: string) {
+					if (findUuid === uuid) {
+						Hooks.off('retrieveBaseItem', this);
+						resolve(item);
+					}
+				});
+			});
+	}
+
+	baseItems.set(uuid, undefined);
+	const item = (await fromUuid(uuid)) as ItemExtended | null;
+	baseItems.set(uuid, item);
+	Hooks.callAll('retrieveBaseItem', item, uuid);
+	return item;
 }
 
 export function findCompendiumFromItemID(id: string) {

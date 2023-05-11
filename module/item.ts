@@ -4,7 +4,6 @@ import { MODULE, getSetting } from './settings.js';
 import { KEEP_PROPERTIES } from './system.js';
 
 export const derivations: Map<ItemExtended, ItemExtended> = new Map();
-export const derivationsIds: Set<string> = new Set();
 let original;
 
 function findDerived(itemCompendium: ItemExtended) {
@@ -17,7 +16,6 @@ function updateItem(item, changes) {
 		if (changes.flags?.[MODULE]?.isLinked === false) {
 			const baseItem = derivations.get(item);
 			derivations.delete(item);
-			derivationsIds.delete(item.id);
 			baseItem?.compendium.render();
 		}
 		return;
@@ -57,13 +55,9 @@ function prepareItemFromBaseItem(item: ItemExtended, baseItem: ItemExtended, old
 	}
 
 	if (item.id && item.id !== baseItem.id && (item.parent === null || item.parent.id !== null)) {
-		//if (!derivationsIds.has(item.id!)) {
 		derivations.set(item, baseItem);
 		oldBaseItem?.compendium.render();
-		derivationsIds.add(item.id!);
 		baseItem.compendium.render();
-		//if (item.parent) item.parent.sheet?.render();
-		//}
 	}
 }
 
@@ -120,7 +114,6 @@ function preUpdateItem(item: ItemExtended, changes: any) {
 export function deleteItem(item: ItemExtended) {
 	const baseItemId = getFlag(item, 'baseItem');
 	if (getFlag(item, 'isLinked') && baseItemId) {
-		derivationsIds.delete(item.id!);
 		derivations.delete(item);
 		findItemFromUUID(baseItemId).then((item) => {
 			if (item) item.compendium.render();
