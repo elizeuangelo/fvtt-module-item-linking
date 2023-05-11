@@ -62,6 +62,7 @@ function prepareItemFromBaseItem(item: ItemExtended, baseItem: ItemExtended, old
 		oldBaseItem?.compendium.render();
 		derivationsIds.add(item.id!);
 		baseItem.compendium.render();
+		//if (item.parent) item.parent.sheet?.render();
 		//}
 	}
 }
@@ -111,8 +112,8 @@ function preUpdateItem(item: ItemExtended, changes: any) {
 			changes.name = base.name;
 			changes.img = base.img;
 		}
-		mergeObject(item._source, updates);
-		//item.updateSource(updates);
+
+		item.updateSource(updates);
 	}
 }
 

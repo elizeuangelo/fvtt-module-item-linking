@@ -15,6 +15,7 @@ declare global {
 	class ItemExtended extends Item {
 		_source: any;
 		system: any;
+		validate: any;
 		collections: Record<string, any>;
 		baseItem?: ItemExtended;
 		updateSource(changes: Object, options?: Object): Object;

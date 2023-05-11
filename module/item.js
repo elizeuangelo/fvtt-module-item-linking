@@ -93,7 +93,7 @@ function preUpdateItem(item, changes) {
             changes.name = base.name;
             changes.img = base.img;
         }
-        mergeObject(item._source, updates);
+        item.updateSource(updates);
     }
 }
 export function deleteItem(item) {

@@ -126,8 +126,12 @@ function renderItemSheet(sheet: ItemSheet, html: JQuery) {
 	}
 
 	// Delete problematic fields
-	const deletions = ['a.editor-edit', 'div.item-controls'];
+	const deletions = ['a.editor-edit', 'div.item-controls', '.damage-control'];
 	deletions.forEach((deletion) => html.find(deletion).remove());
+
+	// Fix Broken Fields
+	const fixes = [{ sel: 'input[name="system.uses.max"]', val: (sheet.item as ItemExtended).system.uses.max }];
+	fixes.forEach((f) => html.find(f.sel).val(f.val));
 
 	// Delete Useless Fields, if configured so
 	if (getSetting('hideUselessInformation')) {
@@ -147,11 +151,23 @@ function renderItemSheet(sheet: ItemSheet, html: JQuery) {
 		html[0].querySelectorAll('.form-group').forEach((v, idx) => {
 			const input = v.querySelector('input:not([value=""])');
 			const inputNotDisabled = v.querySelector('input:not([disabled])');
-			const selection = v.querySelector('select option[selected][value]:not([value])');
+			const selection = v.querySelector('select option[selected][value]:not([value=""])');
 			const selectionNotDisabled = v.querySelector('selection:not([disabled])');
 			const tag = v.querySelector('li.tag');
 			if (input || selection || tag || inputNotDisabled || selectionNotDisabled) return;
 			v.remove();
+		});
+
+		// Delete Empty Damage Header
+		const dmgHeader = html.find('.damage-header')[0];
+		if (dmgHeader && !dmgHeader.nextElementSibling?.classList.contains('damage-parts')) {
+			dmgHeader.remove();
+		}
+
+		// Delete Empty Headers
+		[...html.find('.details h3')].forEach((el) => {
+			const next = el.nextElementSibling;
+			if (next === null || next.tagName === 'H3') el.remove();
 		});
 
 		sheet.element.css('height', 'auto');
