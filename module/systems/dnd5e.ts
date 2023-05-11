@@ -3,6 +3,9 @@ import { PACKS, createUuidFromIndex, findItemFromUUID, getItemsFromCompendiumsBy
 import { MODULE, getSetting } from '../settings.js';
 
 export const KEEP = [
+	'consume.amount',
+	'consume.target',
+	'consume.type',
 	'uses.value',
 	'recharge.charged',
 	'quantity',
@@ -143,11 +146,15 @@ function renderItemSheet(sheet: ItemSheet, html: JQuery) {
 		// For every Form Group, remove if empty content
 		html[0].querySelectorAll('.form-group').forEach((v, idx) => {
 			const input = v.querySelector('input:not([value=""])');
-			const selection = v.querySelector('select option[selected][value]:not([value=""])');
+			const inputNotDisabled = v.querySelector('input:not([disabled])');
+			const selection = v.querySelector('select option[selected][value]:not([value])');
+			const selectionNotDisabled = v.querySelector('selection:not([disabled])');
 			const tag = v.querySelector('li.tag');
-			if (input || selection || tag) return;
+			if (input || selection || tag || inputNotDisabled || selectionNotDisabled) return;
 			v.remove();
 		});
+
+		sheet.element.css('height', 'auto');
 	}
 }
 

@@ -12,12 +12,14 @@ function findDerived(itemCompendium) {
 function updateItem(item, changes) {
     if (!item.compendium) {
         if (changes.flags?.[MODULE]?.isLinked === false) {
+            const baseItem = derivations.get(item);
             derivations.delete(item);
             derivationsIds.delete(item.id);
+            baseItem?.compendium.render();
         }
         return;
     }
-    const derived = findDerived(item.uuid);
+    const derived = findDerived(item);
     derived.forEach(async ([derivation]) => {
         prepareItemFromBaseItem(derivation, item);
         derivation.parent?.sheet?.render();
@@ -25,14 +27,13 @@ function updateItem(item, changes) {
     });
     ui.sidebar.tabs.items.render();
 }
-function prepareItemFromBaseItem(item, baseItem) {
-    const system = foundry.utils.deepClone(baseItem.system);
-    const keep = KEEP_PROPERTIES;
-    if (keep !== undefined) {
-        const map = Object.fromEntries(keep.map((k) => [k, foundry.utils.getProperty(item.system, k)]));
-        mergeObject(system, map);
-    }
-    item.system = system;
+function prepareItemFromBaseItem(item, baseItem, oldBaseItem) {
+    const system = flattenObject(baseItem.system);
+    Object.keys(system).forEach((k) => {
+        if (KEEP_PROPERTIES.includes(k))
+            delete system[k];
+    });
+    mergeObject(item.system, system);
     const embeddedTypes = item.constructor.metadata.embedded || {};
     for (const collectionName of Object.values(embeddedTypes)) {
         item[collectionName].clear();
@@ -44,8 +45,7 @@ function prepareItemFromBaseItem(item, baseItem) {
         item.name = baseItem.name;
         item.img = baseItem.img;
     }
-    if (item.id !== baseItem.id && (item.parent === null || item.parent.id !== null)) {
-        const oldBaseItem = derivations.get(item);
+    if (item.id && item.id !== baseItem.id && (item.parent === null || item.parent.id !== null)) {
         derivations.set(item, baseItem);
         oldBaseItem?.compendium.render();
         derivationsIds.add(item.id);
@@ -58,7 +58,7 @@ function prepareDerivedData() {
     if (getFlag(this, 'isLinked') !== true || !baseItemId)
         return;
     const prepare = (baseItem) => {
-        prepareItemFromBaseItem(this, baseItem);
+        prepareItemFromBaseItem(this, baseItem, oldBaseItem);
         if (this.sheet?.rendered)
             this.sheet.render(true);
     };
@@ -67,7 +67,7 @@ function prepareDerivedData() {
         prepare(derivations.get(this));
     }
     else
-        findItemFromUUID(getFlag(this, 'baseItem')).then((baseItem) => {
+        findItemFromUUID(baseItemId).then((baseItem) => {
             if (baseItem)
                 prepare(baseItem);
         });
@@ -77,7 +77,7 @@ function preUpdateItem(item, changes) {
     const baseItemId = changes.flags?.[MODULE]?.baseItem;
     if (linked === false || baseItemId) {
         const updates = {
-            system: item._source.system,
+            system: item.system,
         };
         const oldBaseItem = derivations.get(item);
         if (linked === false && oldBaseItem) {
@@ -86,14 +86,14 @@ function preUpdateItem(item, changes) {
                 updates[collectionName] = oldBaseItem._source[collectionName];
             }
         }
-        if (getSetting('linkHeader')) {
-            const base = fromUuidSync(changes.flags?.[MODULE]?.baseItem ?? getFlag(item, 'baseItem')) ?? item;
+        const base = fromUuidSync(baseItemId ?? getFlag(item, 'baseItem'));
+        if (getSetting('linkHeader') && base) {
             updates.name = base.name;
             updates.img = base.img;
             changes.name = base.name;
             changes.img = base.img;
         }
-        item.updateSource(updates);
+        mergeObject(item._source, updates);
     }
 }
 export function deleteItem(item) {

@@ -2,6 +2,9 @@ import { getFlag } from '../flags.js';
 import { PACKS, createUuidFromIndex, findItemFromUUID, getItemsFromCompendiumsByType } from '../packs.js';
 import { MODULE, getSetting } from '../settings.js';
 export const KEEP = [
+    'consume.amount',
+    'consume.target',
+    'consume.type',
     'uses.value',
     'recharge.charged',
     'quantity',
@@ -112,12 +115,15 @@ function renderItemSheet(sheet, html) {
         }
         html[0].querySelectorAll('.form-group').forEach((v, idx) => {
             const input = v.querySelector('input:not([value=""])');
-            const selection = v.querySelector('select option[selected][value]:not([value=""])');
+            const inputNotDisabled = v.querySelector('input:not([disabled])');
+            const selection = v.querySelector('select option[selected][value]:not([value])');
+            const selectionNotDisabled = v.querySelector('selection:not([disabled])');
             const tag = v.querySelector('li.tag');
-            if (input || selection || tag)
+            if (input || selection || tag || inputNotDisabled || selectionNotDisabled)
                 return;
             v.remove();
         });
+        sheet.element.css('height', 'auto');
     }
 }
 Hooks.on('renderItemSheet', renderItemSheet);
