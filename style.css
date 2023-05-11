@@ -3,9 +3,9 @@
 }
 
 .link-derivations {
-    position: absolute;
-    right: 15px;
+    position: relative;
     color: red;
+    flex: 0;
 }
 
 /*.dnd5e.sheet .sheet-header .summary a.item-link {
