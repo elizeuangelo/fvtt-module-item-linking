@@ -1,23 +1,3 @@
-export const baseItems = new Map();
-export async function findItemFromUUID(uuid) {
-    if (baseItems.has(uuid)) {
-        const item = baseItems.get(uuid);
-        if (item === undefined)
-            return new Promise((resolve) => {
-                Hooks.on('retrieveBaseItem', function check(item, findUuid) {
-                    if (findUuid === uuid) {
-                        Hooks.off('retrieveBaseItem', this);
-                        resolve(item);
-                    }
-                });
-            });
-    }
-    baseItems.set(uuid, undefined);
-    const item = (await fromUuid(uuid));
-    baseItems.set(uuid, item);
-    Hooks.callAll('retrieveBaseItem', item, uuid);
-    return item;
-}
 export function findCompendiumFromItemID(id) {
     for (const pack of PACKS) {
         const res = pack.index.get(id);

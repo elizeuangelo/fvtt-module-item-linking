@@ -1,141 +1,101 @@
 import { getFlag } from './flags.js';
-import { findItemFromUUID } from './packs.js';
 import { MODULE, getSetting } from './settings.js';
 import { KEEP_PROPERTIES } from './system.js';
 
-export const derivations: Map<ItemExtended, ItemExtended> = new Map();
-let original;
+export function findDerived() {
+	const items = game.items!.contents;
+	const tokens = game
+		.scenes!.contents.map((s) => s.tokens.contents.filter((t) => t.isLinked === false).map((t) => t.actor))
+		.flat();
+	const embedded = [...game.actors!, ...tokens].map((a) => a!.items.contents).flat();
+	const frequency: Record<string, ItemExtended[]> = {};
+	[...items, ...embedded].forEach((i: ItemExtended) => {
+		if (!getFlag(i, 'isLinked')) return;
+		const baseItemUuid = getFlag(i, 'baseItem');
+		if (!baseItemUuid) return;
+		if (!frequency[baseItemUuid]) frequency[baseItemUuid] = [];
+		frequency[baseItemUuid].push(i);
+	});
+	return frequency;
+}
 
-function findDerived(itemCompendium: ItemExtended) {
-	const registry = [...derivations.entries()];
-	return registry.filter(([k, v]) => v === itemCompendium);
+function getKeepProperties() {
+	const additional = getSetting('linkHeader') ? ['name', 'img'] : [];
+	return [`flags.${MODULE}`, ...KEEP_PROPERTIES, ...additional];
+}
+
+function removeKeepProperties(changes: Object, keys = getKeepProperties()) {
+	keys.forEach((key) => {
+		const ps = key.split('.');
+		let target = changes;
+		ps.forEach((p, idx) => {
+			const t = getType(target);
+			if (!(t === 'Object' || t === 'Array')) return;
+			if (p in target) {
+				if (idx + 1 === ps.length) delete target[p];
+				else target = target[p];
+			} else return;
+		});
+	});
+	return changes;
+}
+
+function createChanges(item: ItemExtended, baseItem: ItemExtended) {
+	const source = foundry.utils.deepClone(item._source);
+	const diff = foundry.utils.diffObject(source, baseItem._source);
+	return removeKeepProperties(diff);
 }
 
 function updateItem(item, changes) {
 	if (!item.compendium) {
-		if (changes.flags?.[MODULE]?.isLinked === false) {
-			const baseItem = derivations.get(item);
-			derivations.delete(item);
-			baseItem?.compendium.render();
+		if (changes.flags?.[MODULE]) {
+			Object.values(ui.windows).forEach((app) => {
+				if (app instanceof Compendium) app.render();
+			});
 		}
 		return;
 	}
-	const derived = findDerived(item);
-
-	// Updates Every Item Related to the UUID
-	derived.forEach(async ([derivation]) => {
-		prepareItemFromBaseItem(derivation, item);
-		derivation.parent?.sheet?.render();
-		derivation.sheet?.render();
-	});
-
-	ui.sidebar.tabs.items!.render();
 }
 
-function prepareItemFromBaseItem(item: ItemExtended, baseItem: ItemExtended, oldBaseItem?: ItemExtended) {
-	const system = flattenObject(baseItem.system);
-	Object.keys(system).forEach((k) => {
-		if (KEEP_PROPERTIES.includes(k)) delete system[k];
-	});
-	mergeObject(item.system, system);
+function preUpdateItem(item: ItemExtended, changes: any, options: any) {
+	const linked = changes.flags?.[MODULE]?.isLinked ?? getFlag(item, 'isLinked');
+	const baseItemId = changes.flags?.[MODULE]?.baseItem ?? getFlag(item, 'baseItem');
+	const linkedUpdate = options?.linkedUpdate ?? false;
 
-	// Embedded Items
-	const embeddedTypes = (item.constructor as any).metadata.embedded || {};
-	for (const collectionName of Object.values(embeddedTypes) as string[]) {
-		item[collectionName].clear();
-		for (const [key, value] of baseItem[collectionName].entries()) {
-			item[collectionName].set(key, value);
-		}
-	}
+	if (linkedUpdate === false && (linked === true || baseItemId)) {
+		if (!item.compendium) {
+			fromUuid(baseItemId).then((baseItem: ItemExtended | null) => {
+				const addChanges = baseItem ? createChanges(item, baseItem) : {};
+				item.update({ ...changes, ...addChanges }, { linkedUpdate: true });
+			});
 
-	// Link Header is configured so
-	if (getSetting('linkHeader')) {
-		item.name = baseItem.name;
-		item.img = baseItem.img;
-	}
-
-	if (item.id && item.id !== baseItem.id && (item.parent === null || item.parent.id !== null)) {
-		derivations.set(item, baseItem);
-		oldBaseItem?.compendium.render();
-		baseItem.compendium.render();
-	}
-}
-
-function prepareDerivedData() {
-	original.call(this);
-
-	const baseItemId = getFlag(this, 'baseItem');
-	if (getFlag(this, 'isLinked') !== true || !baseItemId) return;
-
-	const prepare = (baseItem) => {
-		prepareItemFromBaseItem(this, baseItem, oldBaseItem);
-		if (this.sheet?.rendered) this.sheet.render(true);
-	};
-
-	const oldBaseItem = derivations.get(this);
-
-	if (oldBaseItem?.uuid === baseItemId) {
-		prepare(derivations.get(this));
-	} else
-		findItemFromUUID(baseItemId).then((baseItem) => {
-			if (baseItem) prepare(baseItem);
-		});
-}
-
-function preUpdateItem(item: ItemExtended, changes: any) {
-	const linked = changes.flags?.[MODULE]?.isLinked;
-	const baseItemId = changes.flags?.[MODULE]?.baseItem;
-	if (linked === false || baseItemId) {
-		const updates: Record<string, any> = {
-			system: item.system,
-		};
-
-		// Embedded Items
-		const oldBaseItem = derivations.get(item);
-		if (linked === false && oldBaseItem) {
-			const embeddedTypes = (item.constructor as any).metadata.embedded || {};
-			for (const collectionName of Object.values(embeddedTypes) as string[]) {
-				updates[collectionName] = oldBaseItem._source[collectionName];
-			}
+			return false;
 		}
 
-		const base = fromUuidSync(baseItemId ?? getFlag(item, 'baseItem'));
-		if (getSetting('linkHeader') && base) {
-			updates.name = base.name!;
-			updates.img = base.img!;
-			changes.name = base.name;
-			changes.img = base.img;
-		}
-
-		item.updateSource(updates);
-	}
-}
-
-export function deleteItem(item: ItemExtended) {
-	const baseItemId = getFlag(item, 'baseItem');
-	if (getFlag(item, 'isLinked') && baseItemId) {
-		derivations.delete(item);
-		findItemFromUUID(baseItemId).then((item) => {
-			if (item) item.compendium.render();
+		setProperty(changes, `flags.${MODULE}`, {
+			baseItem: null,
+			isLinked: false,
 		});
 	}
+
+	if (item.compendium) {
+		// Updates Every Derivation Related to the Item
+		const derived = findDerived()[item.uuid];
+		derived.map((derivation) => derivation.update(createChanges(derivation, item), { linkedUpdate: true }));
+	}
 }
 
-function createItem(item) {
+function updateCompendium(item) {
 	const baseItemId = getFlag(item, 'baseItem');
 	if (getFlag(item, 'isLinked') && baseItemId) {
-		findItemFromUUID(baseItemId).then((item) => {
+		fromUuid(baseItemId).then((item: ItemExtended | null) => {
 			if (item) item.compendium.render();
 		});
 	}
 }
 
 /** -------------------------------------------- */
-Hooks.on('createItem', createItem);
 Hooks.on('preUpdateItem', preUpdateItem);
 Hooks.on('updateItem', updateItem);
-Hooks.on('deleteItem', deleteItem);
-Hooks.once('setup', () => {
-	original = CONFIG.Item.documentClass.prototype.prepareDerivedData;
-	CONFIG.Item.documentClass.prototype.prepareDerivedData = prepareDerivedData;
-});
+Hooks.on('createItem', updateCompendium);
+Hooks.on('deleteItem', updateCompendium);
