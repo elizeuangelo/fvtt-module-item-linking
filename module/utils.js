@@ -8,3 +8,18 @@ export const warn = (message) => {
 export const error = (message) => {
     console.error(`%c${TITLE} %c| ${message}`, 'color:orange;font-weight:bold', '');
 };
+export function deletionKeys(original, other) {
+    return Object.keys(original).reduce((obj, key) => {
+        if (!(key in other)) {
+            obj['-=' + key] = null;
+            return obj;
+        }
+        const t0 = getType(original[key]);
+        if (t0 !== 'Object')
+            return obj;
+        const inner = deletionKeys(original[key], other[key]);
+        if (Object.keys(inner).length)
+            obj[key] = inner;
+        return obj;
+    }, {});
+}

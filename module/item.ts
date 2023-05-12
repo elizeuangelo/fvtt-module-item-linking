@@ -1,6 +1,7 @@
 import { getFlag } from './flags.js';
 import { MODULE, getSetting } from './settings.js';
 import { KEEP_PROPERTIES } from './system.js';
+import { deletionKeys } from './utils.js';
 
 export function findDerived() {
 	const items = game.items!.contents;
@@ -20,8 +21,8 @@ export function findDerived() {
 }
 
 function getKeepProperties() {
-	const additional = getSetting('linkHeader') ? ['name', 'img'] : [];
-	return [`flags.${MODULE}`, ...KEEP_PROPERTIES, ...additional];
+	const additional = getSetting('linkHeader') ? [] : ['name', 'img'];
+	return [`flags`, '_id', '_stats', 'ownership', ...KEEP_PROPERTIES, ...additional];
 }
 
 function removeKeepProperties(changes: Object, keys = getKeepProperties()) {
@@ -41,9 +42,11 @@ function removeKeepProperties(changes: Object, keys = getKeepProperties()) {
 }
 
 function createChanges(item: ItemExtended, baseItem: ItemExtended) {
-	const source = foundry.utils.deepClone(item._source);
-	const diff = foundry.utils.diffObject(source, baseItem._source);
-	return removeKeepProperties(diff);
+	const source = removeKeepProperties(foundry.utils.deepClone(item._source));
+	const baseItemSource = removeKeepProperties(foundry.utils.deepClone(baseItem._source));
+	const diff = foundry.utils.diffObject(source, baseItemSource);
+	const deletions = deletionKeys(source, baseItemSource);
+	return mergeObject(deletions, diff);
 }
 
 function updateItem(item, changes) {
@@ -66,7 +69,9 @@ function preUpdateItem(item: ItemExtended, changes: any, options: any) {
 		if (!item.compendium) {
 			fromUuid(baseItemId).then((baseItem: ItemExtended | null) => {
 				const addChanges = baseItem ? createChanges(item, baseItem) : {};
-				item.update({ ...changes, ...addChanges }, { linkedUpdate: true });
+				mergeObject(changes, addChanges);
+				if (Object.keys(changes).length === 0) return;
+				item.update(changes, { linkedUpdate: true });
 			});
 
 			return false;
@@ -81,7 +86,9 @@ function preUpdateItem(item: ItemExtended, changes: any, options: any) {
 	if (item.compendium) {
 		// Updates Every Derivation Related to the Item
 		const derived = findDerived()[item.uuid];
-		derived.map((derivation) => derivation.update(createChanges(derivation, item), { linkedUpdate: true }));
+		derived.map((derivation) =>
+			derivation.update({ ...createChanges(derivation, item), ...changes }, { linkedUpdate: true })
+		);
 	}
 }
 

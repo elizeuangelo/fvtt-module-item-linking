@@ -1,6 +1,7 @@
 import { getFlag } from './flags.js';
 import { MODULE, getSetting } from './settings.js';
 import { KEEP_PROPERTIES } from './system.js';
+import { deletionKeys } from './utils.js';
 export function findDerived() {
     const items = game.items.contents;
     const tokens = game
@@ -21,8 +22,8 @@ export function findDerived() {
     return frequency;
 }
 function getKeepProperties() {
-    const additional = getSetting('linkHeader') ? ['name', 'img'] : [];
-    return [`flags.${MODULE}`, ...KEEP_PROPERTIES, ...additional];
+    const additional = getSetting('linkHeader') ? [] : ['name', 'img'];
+    return [`flags`, '_id', '_stats', 'ownership', ...KEEP_PROPERTIES, ...additional];
 }
 function removeKeepProperties(changes, keys = getKeepProperties()) {
     keys.forEach((key) => {
@@ -45,9 +46,11 @@ function removeKeepProperties(changes, keys = getKeepProperties()) {
     return changes;
 }
 function createChanges(item, baseItem) {
-    const source = foundry.utils.deepClone(item._source);
-    const diff = foundry.utils.diffObject(source, baseItem._source);
-    return removeKeepProperties(diff);
+    const source = removeKeepProperties(foundry.utils.deepClone(item._source));
+    const baseItemSource = removeKeepProperties(foundry.utils.deepClone(baseItem._source));
+    const diff = foundry.utils.diffObject(source, baseItemSource);
+    const deletions = deletionKeys(source, baseItemSource);
+    return mergeObject(deletions, diff);
 }
 function updateItem(item, changes) {
     if (!item.compendium) {
@@ -68,7 +71,10 @@ function preUpdateItem(item, changes, options) {
         if (!item.compendium) {
             fromUuid(baseItemId).then((baseItem) => {
                 const addChanges = baseItem ? createChanges(item, baseItem) : {};
-                item.update({ ...changes, ...addChanges }, { linkedUpdate: true });
+                mergeObject(changes, addChanges);
+                if (Object.keys(changes).length === 0)
+                    return;
+                item.update(changes, { linkedUpdate: true });
             });
             return false;
         }
@@ -79,7 +85,7 @@ function preUpdateItem(item, changes, options) {
     }
     if (item.compendium) {
         const derived = findDerived()[item.uuid];
-        derived.map((derivation) => derivation.update(createChanges(derivation, item), { linkedUpdate: true }));
+        derived.map((derivation) => derivation.update({ ...createChanges(derivation, item), ...changes }, { linkedUpdate: true }));
     }
 }
 function updateCompendium(item) {
