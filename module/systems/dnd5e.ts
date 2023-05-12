@@ -1,22 +1,22 @@
 import { getFlag } from '../flags.js';
-import { PACKS, createUuidFromIndex, findItemFromUUID, getItemsFromCompendiumsByType } from '../packs.js';
+import { PACKS, createUuidFromIndex, getItemsFromCompendiumsByType } from '../packs.js';
 import { MODULE, getSetting } from '../settings.js';
 
 export const KEEP = [
-	'consume.amount',
-	'consume.target',
-	'consume.type',
-	'uses.value',
-	'recharge.charged',
-	'quantity',
-	'proficient',
-	'identified',
-	'equipped',
-	'attunement',
-	'hp.value',
-	'hp.conditions',
-	'isOriginalClass',
-	'skills.value',
+	'system.consume.amount',
+	'system.consume.target',
+	'system.consume.type',
+	'system.uses.value',
+	'system.recharge.charged',
+	'system.quantity',
+	'system.proficient',
+	'system.identified',
+	'system.equipped',
+	'system.attunement',
+	'system.hp.value',
+	'system.hp.conditions',
+	'system.isOriginalClass',
+	'system.skills.value',
 ];
 
 function createOptionsFromPack(pack, type: string, selected: string | null) {
@@ -96,7 +96,7 @@ function renderItemSheet(sheet: ItemSheet, html: JQuery) {
 
 		if (baseItemId && brokenLink === false) {
 			html.find(`select[name="flags.${MODULE}.baseItem"]`).on('contextmenu', async () => {
-				const baseItem = await findItemFromUUID(baseItemId);
+				const baseItem = (await fromUuid(baseItemId)) as Item;
 				baseItem?.sheet!.render(true);
 			});
 		}
@@ -114,8 +114,7 @@ function renderItemSheet(sheet: ItemSheet, html: JQuery) {
 
 	// Disable all non editable fields
 	const rgx = /^system\./;
-	const KEEP_PROP = KEEP.map((k) => 'system.' + k);
-	const filter = (input: HTMLInputElement | HTMLSelectElement) => !(!rgx.exec(input.name) || KEEP_PROP.includes(input.name));
+	const filter = (input: HTMLInputElement | HTMLSelectElement) => !(!rgx.exec(input.name) || KEEP.includes(input.name));
 
 	$([...html.find('input'), ...html.find('select')].filter(filter)).attr('disabled', '');
 

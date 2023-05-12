@@ -9,3 +9,21 @@ export const warn = (message: string) => {
 export const error = (message: string) => {
 	console.error(`%c${TITLE} %c| ${message}`, 'color:orange;font-weight:bold', '');
 };
+
+export function deletionKeys(original: Object, other: Object) {
+	// Recursively call the _difference function
+	return Object.keys(original).reduce((obj, key) => {
+		if (!(key in other)) {
+			obj['-=' + key] = null;
+			return obj;
+		}
+		const t0 = getType(original[key]);
+		//const t1 = getType(other[key]);
+
+		if (t0 !== 'Object') return obj;
+
+		const inner = deletionKeys(original[key], other[key]);
+		if (Object.keys(inner).length) obj[key] = inner;
+		return obj;
+	}, {});
+}
