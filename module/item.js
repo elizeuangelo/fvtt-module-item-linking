@@ -23,7 +23,7 @@ export function findDerived() {
 }
 function getKeepProperties() {
     const additional = getSetting('linkHeader') ? [] : ['name', 'img'];
-    return [`flags`, '_id', '_stats', 'ownership', ...KEEP_PROPERTIES, ...additional];
+    return [`flags`, '_id', '_stats', 'ownership', 'folder', 'sort', ...KEEP_PROPERTIES, ...additional];
 }
 function removeKeepProperties(changes, keys = getKeepProperties()) {
     keys.forEach((key) => {
