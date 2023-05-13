@@ -5,9 +5,12 @@ import { deletionKeys } from './utils.js';
 export function findDerived() {
     const items = game.items.contents;
     const tokens = game
-        .scenes.contents.map((s) => s.tokens.contents.filter((t) => t.isLinked === false).map((t) => t.actor))
+        .scenes.contents.map((s) => s.tokens.contents.filter((t) => t.isLinked === false && t.actor).map((t) => t.actor))
         .flat();
-    const embedded = [...game.actors, ...tokens].map((a) => a.items.contents).flat();
+    const embedded = [...game.actors.values(), ...tokens]
+        .map((a) => a.items.contents)
+        .flat()
+        .filter(Boolean);
     const frequency = {};
     [...items, ...embedded].forEach((i) => {
         if (!getFlag(i, 'isLinked'))
