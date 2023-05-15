@@ -153,7 +153,14 @@ function renderItemSheet(sheet: ItemSheet, html: JQuery) {
 			const selection = v.querySelector('select option[selected][value]:not([value=""])');
 			const selectionNotDisabled = v.querySelector('selection:not([disabled])');
 			const tag = v.querySelector('li.tag');
-			if (input || selection || tag || inputNotDisabled || selectionNotDisabled) return;
+			if (
+				input ||
+				(selection && !['spell', 'self'].includes((selection as HTMLOptionElement).value)) ||
+				tag ||
+				(inputNotDisabled && (inputNotDisabled as HTMLInputElement).name !== 'system.uses.value') ||
+				selectionNotDisabled
+			)
+				return;
 			v.remove();
 		});
 

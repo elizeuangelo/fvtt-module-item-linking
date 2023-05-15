@@ -89,6 +89,9 @@ function preUpdateItem(item, changes, options) {
     if (item.compendium) {
         const derived = findDerived()[item.uuid];
         const derived_changes = deepClone(changes);
+        if (derived_changes.uses?.max === '') {
+            derived_changes.uses.value = null;
+        }
         derived.map((derivation) => derivation.update({ ...createChanges(derivation, item), ...removeKeepProperties(derived_changes) }, { linkedUpdate: true }));
     }
 }

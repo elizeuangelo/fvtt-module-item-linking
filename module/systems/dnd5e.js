@@ -120,7 +120,11 @@ function renderItemSheet(sheet, html) {
             const selection = v.querySelector('select option[selected][value]:not([value=""])');
             const selectionNotDisabled = v.querySelector('selection:not([disabled])');
             const tag = v.querySelector('li.tag');
-            if (input || selection || tag || inputNotDisabled || selectionNotDisabled)
+            if (input ||
+                (selection && !['spell', 'self'].includes(selection.value)) ||
+                tag ||
+                (inputNotDisabled && inputNotDisabled.name !== 'system.uses.value') ||
+                selectionNotDisabled)
                 return;
             v.remove();
         });
