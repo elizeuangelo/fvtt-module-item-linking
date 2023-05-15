@@ -15,7 +15,7 @@ const settings = {
         scope: 'world',
         config: true,
         type: Boolean,
-        default: false,
+        default: true,
     },
 };
 export function getSetting(name) {

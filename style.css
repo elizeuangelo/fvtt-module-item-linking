@@ -2,6 +2,10 @@
     align-items: center;
 }
 
+.tidy5e.sheet .sheet-header .link * {
+    max-height: 20px;
+}
+
 .link-derivations {
     position: relative;
     flex: 0;
