@@ -62,8 +62,8 @@ function renderItemSheet(sheet: ItemSheet, html: JQuery) {
 	const item = sheet.document;
 	if (item.compendium) return;
 
-	const linked = getFlag(item, 'isLinked');
-	const baseItemId = getFlag(item, 'baseItem');
+	const linked = getFlag(item, 'isLinked') ?? false;
+	const baseItemId = getFlag(item, 'baseItem') ?? null;
 	const brokenLink = baseItemId ? !Boolean(fromUuidSync(baseItemId)) : true;
 
 	// Append to Header
