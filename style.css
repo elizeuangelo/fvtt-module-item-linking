@@ -4,8 +4,16 @@
 
 .link-derivations {
     position: relative;
-    color: red;
     flex: 0;
+    line-height: normal;
+    padding: 4px;
+    height: fit-content;
+    flex-basis: fit-content;
+    text-align: center;
+    align-self: center;
+    color: var(--color-shadow-dark);
+    border: 1px dashed var(--color-border-light-tertiary);
+    background: var(--color-bg-option);
 }
 
 /*.dnd5e.sheet .sheet-header .summary a.item-link {

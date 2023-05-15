@@ -89,8 +89,12 @@ function preUpdateItem(item: ItemExtended, changes: any, options: any) {
 	if (item.compendium) {
 		// Updates Every Derivation Related to the Item
 		const derived = findDerived()[item.uuid];
+		const derived_changes = deepClone(changes);
 		derived.map((derivation) =>
-			derivation.update({ ...createChanges(derivation, item), ...changes }, { linkedUpdate: true })
+			derivation.update(
+				{ ...createChanges(derivation, item), ...removeKeepProperties(derived_changes) },
+				{ linkedUpdate: true }
+			)
 		);
 	}
 }
