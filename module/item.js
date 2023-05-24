@@ -72,11 +72,23 @@ function preUpdateItem(item, changes, options) {
     const linkedUpdate = options?.linkedUpdate ?? false;
     if (linkedUpdate === false && (linked === true || baseItemId)) {
         if (!item.compendium) {
-            fromUuid(baseItemId).then((baseItem) => {
+            fromUuid(baseItemId)
+                .then((baseItem) => {
                 const addChanges = baseItem ? createChanges(item, baseItem) : {};
                 mergeObject(changes, addChanges);
                 if (Object.keys(changes).length === 0)
                     return;
+                Object.entries(CONFIG.Item.documentClass.metadata.embedded).forEach(([collectionName, collection]) => {
+                    const keepIds = baseItem?._source[collection].map((fx) => fx._id) ?? [];
+                    const deleteIds = item._source[collection]
+                        .filter((fx) => !keepIds.includes(fx._id))
+                        .map((fx) => fx._id);
+                    if (deleteIds.length)
+                        item.deleteEmbeddedDocuments(collectionName, deleteIds);
+                });
+                item.update(changes, { linkedUpdate: true });
+            })
+                .catch((er) => {
                 item.update(changes, { linkedUpdate: true });
             });
             return false;

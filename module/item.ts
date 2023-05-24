@@ -70,12 +70,27 @@ function preUpdateItem(item: ItemExtended, changes: any, options: any) {
 
 	if (linkedUpdate === false && (linked === true || baseItemId)) {
 		if (!item.compendium) {
-			fromUuid(baseItemId).then((baseItem: ItemExtended | null) => {
-				const addChanges = baseItem ? createChanges(item, baseItem) : {};
-				mergeObject(changes, addChanges);
-				if (Object.keys(changes).length === 0) return;
-				item.update(changes, { linkedUpdate: true });
-			});
+			fromUuid(baseItemId)
+				.then((baseItem: ItemExtended | null) => {
+					const addChanges = baseItem ? createChanges(item, baseItem) : {};
+					mergeObject(changes, addChanges);
+					if (Object.keys(changes).length === 0) return;
+
+					Object.entries(CONFIG.Item.documentClass.metadata.embedded).forEach(
+						([collectionName, collection]: [string, any]) => {
+							const keepIds = baseItem?._source[collection].map((fx) => fx._id) ?? [];
+							const deleteIds = item._source[collection]
+								.filter((fx) => !keepIds.includes(fx._id))
+								.map((fx) => fx._id);
+							if (deleteIds.length) item.deleteEmbeddedDocuments(collectionName, deleteIds);
+						}
+					);
+
+					item.update(changes, { linkedUpdate: true });
+				})
+				.catch((er) => {
+					item.update(changes, { linkedUpdate: true });
+				});
 
 			return false;
 		}
