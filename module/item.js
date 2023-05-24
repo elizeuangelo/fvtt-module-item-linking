@@ -70,7 +70,7 @@ function preUpdateItem(item, changes, options) {
     const linked = changes.flags?.[MODULE]?.isLinked ?? getFlag(item, 'isLinked');
     const baseItemId = changes.flags?.[MODULE]?.baseItem ?? getFlag(item, 'baseItem');
     const linkedUpdate = options?.linkedUpdate ?? false;
-    if (linkedUpdate === false && (linked === true || baseItemId)) {
+    if (linkedUpdate === false && linked === true) {
         if (!item.compendium) {
             fromUuid(baseItemId)
                 .then((baseItem) => {

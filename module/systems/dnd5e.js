@@ -143,6 +143,8 @@ function renderItemSheet(sheet, html) {
     }
 }
 function renderActorSheet(sheet, html) {
+    if (!getSetting('enforceActorsFXs'))
+        return;
     const fxs = html.find('li.item.effect');
     [...fxs].forEach((li) => {
         const fx = sheet.actor.effects.get(li.dataset.effectId ?? '');
