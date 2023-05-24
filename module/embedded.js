@@ -1,4 +1,3 @@
-import { getFlag } from './flags.js';
 import { findDerived } from './item.js';
 import { getSetting } from './settings.js';
 function findItem(origin, actor) {
@@ -47,16 +46,7 @@ function preCreate(document, data, context) {
     });
 }
 function preDelete(document) {
-    if (!document.isEmbedded)
-        return;
-    if (getSetting('enforceActorsFXs') && document.parent instanceof CONFIG.Actor.documentClass) {
-        const item = findItem(document.origin, document.parent);
-        if (item && getFlag(item, 'isLinked')) {
-            ui.notifications.error(`Can't delete an active effect enforced by a linked item.`);
-            return false;
-        }
-    }
-    if (!(document.parent instanceof CONFIG.Item.documentClass) || !document.compendium)
+    if (!document.isEmbedded || !(document.parent instanceof CONFIG.Item.documentClass) || !document.compendium)
         return;
     const item = document.parent;
     const derived = findDerived()[item.uuid];

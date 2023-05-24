@@ -74,17 +74,32 @@ function preUpdateItem(item: ItemExtended, changes: any, options: any) {
 				.then((baseItem: ItemExtended | null) => {
 					const addChanges = baseItem ? createChanges(item, baseItem) : {};
 					mergeObject(changes, addChanges);
-					if (Object.keys(changes).length === 0) return;
 
 					Object.entries(CONFIG.Item.documentClass.metadata.embedded).forEach(
 						([collectionName, collection]: [string, any]) => {
 							const keepIds = baseItem?._source[collection].map((fx) => fx._id) ?? [];
-							const deleteIds = item._source[collection]
+							const deleteIds = (item.parent?._source ?? item._source)[collection]
 								.filter((fx) => !keepIds.includes(fx._id))
 								.map((fx) => fx._id);
-							if (deleteIds.length) item.deleteEmbeddedDocuments(collectionName, deleteIds);
+
+							if (deleteIds.length) {
+								const primaryDoc = item.parent ?? item;
+								if (!item.parent || getSetting('enforceActorsFXs'))
+									primaryDoc.deleteEmbeddedDocuments(collectionName, deleteIds);
+							}
+
+							if (item.isEmbedded) {
+								if (getSetting('enforceActorsFXs')) {
+									const new_data = deepClone(baseItem?._source[collection]) ?? [];
+									new_data.forEach((source) => (source.origin = item.uuid));
+									item.parent?.createEmbeddedDocuments(collectionName, new_data, { keepId: true });
+								}
+								delete changes[collection];
+							}
 						}
 					);
+
+					if (Object.keys(changes).length === 0) return;
 
 					item.update(changes, { linkedUpdate: true });
 				})

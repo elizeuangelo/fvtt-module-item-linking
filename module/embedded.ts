@@ -50,15 +50,7 @@ function preCreate(document: ActiveEffect, data, context) {
 }
 
 function preDelete(document: ActiveEffect) {
-	if (!document.isEmbedded) return;
-	if (getSetting('enforceActorsFXs') && document.parent instanceof CONFIG.Actor.documentClass) {
-		const item = findItem(document.origin, document.parent);
-		if (item && getFlag(item, 'isLinked')) {
-			ui.notifications.error(`Can't delete an active effect enforced by a linked item.`);
-			return false;
-		}
-	}
-	if (!(document.parent instanceof CONFIG.Item.documentClass) || !document.compendium) return;
+	if (!document.isEmbedded || !(document.parent instanceof CONFIG.Item.documentClass) || !document.compendium) return;
 
 	// Updates Every Derivation Related to the Item
 	const item = document.parent;
