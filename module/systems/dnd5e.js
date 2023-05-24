@@ -142,4 +142,23 @@ function renderItemSheet(sheet, html) {
         sheet.element.css('height', 'auto');
     }
 }
+function renderActorSheet(sheet, html) {
+    const fxs = html.find('li.item.effect');
+    [...fxs].forEach((li) => {
+        const fx = sheet.actor.effects.get(li.dataset.effectId ?? '');
+        if (!fx)
+            return;
+        fromUuid(fx.origin).then((item) => {
+            if (item === null || !getFlag(item, 'isLinked'))
+                return;
+            li.querySelector('a[data-action="edit"]')?.remove();
+            li.querySelector('a[data-action="delete"]')?.remove();
+            const source = li.querySelector('div.effect-source');
+            if (source) {
+                source.textContent = source.textContent + ' (linked)';
+            }
+        });
+    });
+}
 Hooks.on('renderItemSheet', renderItemSheet);
+Hooks.on('renderActorSheet5e', renderActorSheet);

@@ -1,12 +1,5 @@
-import { getFlag } from './flags.js';
 import { findDerived } from './item.js';
 import { getSetting } from './settings.js';
-
-function findItem(origin: string, actor: Actor) {
-	const rgx = /Item\.([a-zA-Z0-9]+)/;
-	const match = rgx.exec(origin);
-	return actor.items.get(match?.[1] ?? '');
-}
 
 function preUpdate(document: ActiveEffect, changes) {
 	if (!document.isEmbedded || !(document.parent instanceof CONFIG.Item.documentClass) || !document.compendium) return;

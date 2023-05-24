@@ -88,9 +88,9 @@ function preUpdateItem(item, changes, options) {
                     }
                     if (item.isEmbedded) {
                         if (getSetting('enforceActorsFXs')) {
-                            const new_data = deepClone(baseItem?._source[collection]) ?? [];
+                            const new_data = (deepClone(baseItem?._source[collection]) ?? []).filter((fx) => !item.parent[collection].get(fx._id));
                             new_data.forEach((source) => (source.origin = item.uuid));
-                            item.parent?.createEmbeddedDocuments(collectionName, new_data, { keepId: true });
+                            item.parent.createEmbeddedDocuments(collectionName, new_data, { keepId: true });
                         }
                         delete changes[collection];
                     }
