@@ -17,6 +17,14 @@ const settings = {
         type: Boolean,
         default: true,
     },
+    enforceActorsFXs: {
+        name: 'Enforce Active FXs on Actors',
+        hint: 'Disables edit/deletion on active effects cloned from linked items and track updates on them.',
+        scope: 'world',
+        config: true,
+        type: Boolean,
+        default: false,
+    },
 };
 export function getSetting(name) {
     return game.settings.get(MODULE, name);

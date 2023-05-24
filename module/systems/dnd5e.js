@@ -16,6 +16,8 @@ export const KEEP = [
     'system.hp.conditions',
     'system.isOriginalClass',
     'system.skills.value',
+    'system.preparation.mode',
+    'system.preparation.prepared',
 ];
 function createOptionsFromPack(pack, type, selected) {
     function createOption(value, title, selected) {

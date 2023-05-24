@@ -47,6 +47,14 @@ const settings = {
 		type: Boolean,
 		default: true,
 	},
+	enforceActorsFXs: {
+		name: 'Enforce Active FXs on Actors',
+		hint: 'Disables edit/deletion on active effects cloned from linked items and track updates on them.',
+		scope: 'world',
+		config: true,
+		type: Boolean,
+		default: false,
+	},
 } as const;
 
 export type Settings = typeof settings;
