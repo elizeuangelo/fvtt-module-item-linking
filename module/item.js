@@ -127,7 +127,19 @@ function updateCompendium(item) {
         });
     }
 }
+function preCreateItem(document, data, context) {
+    if (!document.isEmbedded || !getFlag(document, 'isLinked') || context.linkedUpdate)
+        return;
+    fromUuid(getFlag(document, 'baseItem') ?? '').then((baseItem) => {
+        if (baseItem) {
+            Object.entries(CONFIG.Item.documentClass.metadata.embedded).forEach(([collectionName, collection]) => (data[collection] = deepClone(baseItem._source[collection])));
+        }
+        document.parent.createEmbeddedDocuments('Item', [data], { ...context, linkedUpdate: true });
+    });
+    return false;
+}
 Hooks.on('preUpdateItem', preUpdateItem);
 Hooks.on('updateItem', updateItem);
+Hooks.on('preCreateItem', preCreateItem);
 Hooks.on('createItem', updateCompendium);
 Hooks.on('deleteItem', updateCompendium);
