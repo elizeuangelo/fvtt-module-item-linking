@@ -162,5 +162,24 @@ function renderActorSheet(sheet, html) {
         });
     });
 }
+function AFXcontextOptions(fx, buttons) {
+    if (!getSetting('enforceActorsFXs'))
+        return;
+    const rgx = /Item.([A-Za-z0-9]+)/;
+    const match = rgx.exec(fx.origin);
+    if (match === null)
+        return;
+    const item = fx.parent.items.get(match[1]);
+    if (!item)
+        return;
+    const keep = ['DND5E.ContextMenuActionDisable', 'DND5E.ContextMenuActionEnable'];
+    for (let i = buttons.length - 1; i >= 0; i--) {
+        const btn = buttons[i];
+        if (keep.includes(btn.name))
+            continue;
+        buttons.splice(i, 1);
+    }
+}
 Hooks.on('renderItemSheet', renderItemSheet);
 Hooks.on('renderActorSheet5e', renderActorSheet);
+Hooks.on('dnd5e.getActiveEffectContextOptions', AFXcontextOptions);

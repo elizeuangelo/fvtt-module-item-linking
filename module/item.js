@@ -70,7 +70,7 @@ function preUpdateItem(item, changes, options) {
     const linked = changes.flags?.[MODULE]?.isLinked ?? getFlag(item, 'isLinked');
     const baseItemId = changes.flags?.[MODULE]?.baseItem ?? getFlag(item, 'baseItem');
     const linkedUpdate = options?.linkedUpdate ?? false;
-    if (linkedUpdate === false && linked === true) {
+    if (linkedUpdate === false && linked === true && (changes.flags?.[MODULE]?.isLinked || changes.flags?.[MODULE]?.baseItem)) {
         if (!item.compendium) {
             fromUuid(baseItemId)
                 .then((baseItem) => {
@@ -127,12 +127,21 @@ function updateCompendium(item) {
         });
     }
 }
+function mapIds(sourceCollection) {
+    const map = {};
+    const collection = sourceCollection.map((fx) => {
+        const _id = randomID();
+        map[fx._id] = _id;
+        return { ...fx, _id };
+    });
+    return [map, collection];
+}
 function preCreateItem(document, data, context) {
     if (!document.isEmbedded || !getFlag(document, 'isLinked') || context.linkedUpdate)
         return;
     fromUuid(getFlag(document, 'baseItem') ?? '').then((baseItem) => {
         if (baseItem) {
-            Object.entries(CONFIG.Item.documentClass.metadata.embedded).forEach(([collectionName, collection]) => (data[collection] = deepClone(baseItem._source[collection])));
+            Object.entries(CONFIG.Item.documentClass.metadata.embedded).forEach(([collectionName, collection]) => ([data[`flags.${MODULE}.embedded`], data[collection]] = mapIds(baseItem._source[collection])));
         }
         document.parent.createEmbeddedDocuments('Item', [data], { ...context, linkedUpdate: true });
     });

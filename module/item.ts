@@ -68,7 +68,7 @@ function preUpdateItem(item: ItemExtended, changes: any, options: any) {
 	const baseItemId = changes.flags?.[MODULE]?.baseItem ?? getFlag(item, 'baseItem');
 	const linkedUpdate = options?.linkedUpdate ?? false;
 
-	if (linkedUpdate === false && linked === true) {
+	if (linkedUpdate === false && linked === true && (changes.flags?.[MODULE]?.isLinked || changes.flags?.[MODULE]?.baseItem)) {
 		if (!item.compendium) {
 			fromUuid(baseItemId)
 				.then((baseItem: ItemExtended | null) => {
@@ -146,13 +146,24 @@ function updateCompendium(item) {
 	}
 }
 
+function mapIds(sourceCollection: any[]) {
+	const map: Record<string, string> = {};
+	const collection = sourceCollection.map((fx) => {
+		const _id = randomID();
+		map[fx._id] = _id;
+		return { ...fx, _id };
+	});
+	return [map, collection];
+}
+
 function preCreateItem(document: ItemExtended, data, context) {
 	if (!document.isEmbedded || !getFlag(document, 'isLinked') || context.linkedUpdate) return;
 
 	fromUuid(getFlag(document, 'baseItem') ?? '').then((baseItem: ItemExtended | null) => {
 		if (baseItem) {
 			Object.entries(CONFIG.Item.documentClass.metadata.embedded).forEach(
-				([collectionName, collection]: [string, any]) => (data[collection] = deepClone(baseItem._source[collection]))
+				([collectionName, collection]: [string, any]) =>
+					([data[`flags.${MODULE}.embedded`], data[collection]] = mapIds(baseItem._source[collection]))
 			);
 		}
 

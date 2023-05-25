@@ -11,7 +11,7 @@ declare global {
 	interface ModuleFlags {
 		baseItem: string | null;
 		isLinked: boolean;
-		embedded: Record<string, Record<string, string>>;
+		embedded: Record<string, string>;
 	}
 	class ItemExtended extends Item {
 		_source: any;
