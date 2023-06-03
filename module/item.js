@@ -107,6 +107,7 @@ function preUpdateItem(item, changes, options) {
         setProperty(changes, `flags.${MODULE}`, {
             baseItem: null,
             isLinked: false,
+            embedded: {},
         });
     }
     if (item.compendium) {

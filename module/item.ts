@@ -115,6 +115,7 @@ function preUpdateItem(item: ItemExtended, changes: any, options: any) {
 		setProperty(changes, `flags.${MODULE}`, {
 			baseItem: null,
 			isLinked: false,
+			embedded: {},
 		});
 	}
 

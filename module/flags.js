@@ -7,20 +7,22 @@ export function setFlag(item, name, value) {
     return game.settings.set(MODULE, name, value);
 }
 function preCreateItem(item) {
-    const moduleFlags = item._source.flags['item-linking'] || {
+    const baseFlags = {
         baseItem: null,
         isLinked: false,
+        embedded: {},
     };
     const isCompendium = Boolean(item.compendium);
+    const itemFlags = isCompendium ? baseFlags : item._source.flags['item-linking'] || baseFlags;
     if (isCompendium === false && item.id) {
-        if (!moduleFlags.isLinked && !moduleFlags.baseItem) {
+        if (!itemFlags.isLinked && !itemFlags.baseItem) {
             const compendium = findCompendiumFromItemID(item.id);
             if (compendium) {
-                moduleFlags.baseItem = 'Compendium.' + compendium.metadata.id + '.' + item.id;
-                moduleFlags.isLinked = true;
+                itemFlags.baseItem = 'Compendium.' + compendium.metadata.id + '.' + item.id;
+                itemFlags.isLinked = true;
             }
         }
     }
-    item.updateSource({ 'flags.item-linking': moduleFlags });
+    item.updateSource({ 'flags.item-linking': itemFlags });
 }
 Hooks.on('preCreateItem', preCreateItem);

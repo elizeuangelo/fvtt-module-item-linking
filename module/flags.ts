@@ -10,23 +10,26 @@ export function setFlag<T extends keyof ModuleFlags>(item, name: T, value: Modul
 }
 
 function preCreateItem(item: ItemExtended) {
-	const moduleFlags: ModuleFlags = item._source.flags['item-linking'] || {
+	const baseFlags: ModuleFlags = {
 		baseItem: null,
 		isLinked: false,
+		embedded: {},
 	};
+
 	const isCompendium = Boolean(item.compendium);
+	const itemFlags: ModuleFlags = isCompendium ? baseFlags : item._source.flags['item-linking'] || baseFlags;
 
 	if (isCompendium === false && item.id) {
-		if (!moduleFlags.isLinked && !moduleFlags.baseItem) {
+		if (!itemFlags.isLinked && !itemFlags.baseItem) {
 			const compendium = findCompendiumFromItemID(item.id);
 			if (compendium) {
-				moduleFlags.baseItem = 'Compendium.' + compendium.metadata.id + '.' + item.id;
-				moduleFlags.isLinked = true;
+				itemFlags.baseItem = 'Compendium.' + compendium.metadata.id + '.' + item.id;
+				itemFlags.isLinked = true;
 			}
 		}
 	}
 
-	item.updateSource({ 'flags.item-linking': moduleFlags });
+	item.updateSource({ 'flags.item-linking': itemFlags });
 }
 
 /** -------------------------------------------- */
