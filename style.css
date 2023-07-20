@@ -6,6 +6,11 @@
     max-height: 20px;
 }
 
+.tidy5e.sheet.item .sheet-body .tab.item-betterRolls .form-group input:checked:disabled, .tidy5e.sheet.item .sheet-body .tab.details .form-group input:checked:disabled, .tidy5e.sheet.item .sheet-body .tab.advancement .form-group input:checked:disabled, .tidy5e.sheet.item .sheet-body .tab.dynamiceffects .form-group input:checked:disabled, .tidy5e.sheet.item .sheet-body .tab.magic-items .form-group input:checked:disabled {
+    background: var(--t5e-secondary-color);
+    color: var(--t5e-secondary-color);
+}
+
 .link-derivations {
     position: relative;
     flex: 0;
