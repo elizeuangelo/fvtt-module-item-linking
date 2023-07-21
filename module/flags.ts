@@ -23,7 +23,7 @@ function preCreateItem(item: ItemExtended) {
 		if (!itemFlags.isLinked && !itemFlags.baseItem) {
 			const compendium = findCompendiumFromItemID(item.id);
 			if (compendium) {
-				itemFlags.baseItem = 'Compendium.' + compendium.metadata.id + '.' + item.id;
+				itemFlags.baseItem = 'Compendium.' + compendium.metadata.id + '.Item.' + item.id;
 				itemFlags.isLinked = true;
 			}
 		}

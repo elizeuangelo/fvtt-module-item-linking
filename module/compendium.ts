@@ -29,7 +29,7 @@ export default function contextMenu(html: JQuery, entryOptions: entryOption[]) {
 		callback: (li) => {
 			const pack = html.data().pack;
 			const freq = findDerived();
-			const uuid = 'Compendium.' + pack + '.' + li[0].dataset.documentId!;
+			const uuid = 'Compendium.' + pack + '.Item.' + li[0].dataset.documentId!;
 			const items = freq[uuid];
 			if (!items?.length) return ui.notifications.info(`There are no items derived from this item`);
 			items.forEach((i) => i.delete());

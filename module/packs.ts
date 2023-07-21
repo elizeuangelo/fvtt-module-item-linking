@@ -21,7 +21,7 @@ export function getItemsFromCompendiumsByType(compendium, type: string) {
 }
 
 export function createUuidFromIndex(pack: CompendiumCollection<CompendiumCollection.Metadata>, itemId: string) {
-	return `Compendium.${pack.metadata.id}.${itemId}`;
+	return `Compendium.${pack.metadata.id}.Item.${itemId}`;
 }
 
 /** -------------------------------------------- */

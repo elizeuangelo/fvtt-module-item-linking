@@ -20,6 +20,6 @@ export function getItemsFromCompendiumsByType(compendium, type) {
     return compendium.index.filter((i) => i.type === type);
 }
 export function createUuidFromIndex(pack, itemId) {
-    return `Compendium.${pack.metadata.id}.${itemId}`;
+    return `Compendium.${pack.metadata.id}.Item.${itemId}`;
 }
 Hooks.on('renderCompendiumDirectory', getPacksByType);
