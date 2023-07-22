@@ -25,6 +25,12 @@ const settings = {
         type: Boolean,
         default: false,
     },
+    update: {
+        scope: 'world',
+        config: true,
+        type: Number,
+        default: 0,
+    },
 };
 export function getSetting(name) {
     return game.settings.get(MODULE, name);

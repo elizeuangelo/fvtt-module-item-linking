@@ -4,7 +4,7 @@ function renderCompendium(pack: CompendiumCollection<CompendiumCollection.Metada
 	const freq = findDerived();
 
 	[...html.find('ol.directory-list li')].forEach((li) => {
-		const uuid = 'Compendium.' + pack.metadata.id + '.' + li.dataset.documentId!;
+		const uuid = 'Compendium.' + pack.metadata.id + '.Item.' + li.dataset.documentId!;
 		const frequency = freq[uuid]?.length;
 		if (frequency)
 			li.append(

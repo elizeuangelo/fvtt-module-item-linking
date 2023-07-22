@@ -4,7 +4,7 @@ export function getFlag(item, name) {
     return item.getFlag(MODULE, name);
 }
 export function setFlag(item, name, value) {
-    return game.settings.set(MODULE, name, value);
+    return item.setFlag(MODULE, name, value);
 }
 function preCreateItem(item) {
     const baseFlags = {

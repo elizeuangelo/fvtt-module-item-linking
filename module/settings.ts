@@ -2,35 +2,6 @@ export const TITLE = 'Item Linking';
 export const MODULE = 'item-linking';
 
 const settings = {
-	//snapTokens: {
-	//	name: 'Snap Tokens',
-	//	scope: 'world',
-	//	config: false,
-	//	type: Boolean,
-	//	default: true,
-	//	onChange: (value) => canvas.tokens!.placeables.forEach((t) => t.refresh()),
-	//},
-	//scatter: {
-	//	name: 'Scattering',
-	//	hint: 'How much the tokens will scatter around?',
-	//	scope: 'world',
-	//	config: true,
-	//	type: Number,
-	//	default: 0.4,
-	//	range: {
-	//		min: 0.01,
-	//		max: 1,
-	//		step: 0.01,
-	//	},
-	//},
-	//ignoreDead: {
-	//	name: 'Ignore Special Cases',
-	//	hint: 'Dead or incapacitated tokens will not be snapped.',
-	//	scope: 'world',
-	//	config: true,
-	//	type: Boolean,
-	//	default: true,
-	//},
 	linkHeader: {
 		name: 'Link Header',
 		hint: 'Linked items will also have their names and images linked.',
@@ -54,6 +25,12 @@ const settings = {
 		config: true,
 		type: Boolean,
 		default: false,
+	},
+	update: {
+		scope: 'world',
+		config: true,
+		type: Number,
+		default: 0,
 	},
 } as const;
 

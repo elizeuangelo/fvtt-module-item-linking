@@ -6,7 +6,7 @@ export function getFlag<T extends keyof ModuleFlags>(item, name: T) {
 }
 
 export function setFlag<T extends keyof ModuleFlags>(item, name: T, value: ModuleFlags[T]) {
-	return game.settings.set(MODULE, name, value);
+	return item.setFlag(MODULE, name, value);
 }
 
 function preCreateItem(item: ItemExtended) {
