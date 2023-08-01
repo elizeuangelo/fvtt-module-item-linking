@@ -4,6 +4,7 @@ import { getSetting } from './module/settings.js';
 import { log } from './module/utils.js';
 import('./module/flags.js');
 import('./module/compendium.js');
+import('./module/actor.js');
 
 Hooks.once('setup', () => {
 	import('./module/embedded.js');

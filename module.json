@@ -2,7 +2,7 @@
 	"id": "item-linking",
 	"title": "Item Linking",
 	"description": "Enables using compendium items as templates.",
-	"version": "1.0.11",
+	"version": "1.0.12",
 	"authors": [
 		{
 			"name": "Elizeu Angelo",

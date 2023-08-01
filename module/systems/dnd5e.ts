@@ -62,7 +62,7 @@ function onSearchFilter(event, query, rgx, html) {
 
 function renderItemSheet(sheet: ItemSheet, html: JQuery) {
 	const item = sheet.document;
-	if (item.compendium) return;
+	if (item.compendium && !item.isEmbedded) return;
 
 	const linked = getFlag(item, 'isLinked') ?? false;
 	const baseItemId = getFlag(item, 'baseItem') ?? null;

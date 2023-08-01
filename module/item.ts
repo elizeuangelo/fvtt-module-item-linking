@@ -44,7 +44,7 @@ function removeKeepProperties(changes: Object, keys = getKeepProperties()) {
 	return changes;
 }
 
-function createChanges(item: ItemExtended, baseItem: ItemExtended) {
+export function createChanges(item: ItemExtended, baseItem: ItemExtended) {
 	const source = removeKeepProperties(foundry.utils.deepClone(item._source));
 	const baseItemSource = removeKeepProperties(foundry.utils.deepClone(baseItem._source));
 	const diff = foundry.utils.diffObject(source, baseItemSource);

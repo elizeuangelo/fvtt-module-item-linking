@@ -56,7 +56,7 @@ function onSearchFilter(event, query, rgx, html) {
 }
 function renderItemSheet(sheet, html) {
     const item = sheet.document;
-    if (item.compendium)
+    if (item.compendium && !item.isEmbedded)
         return;
     const linked = getFlag(item, 'isLinked') ?? false;
     const baseItemId = getFlag(item, 'baseItem') ?? null;
