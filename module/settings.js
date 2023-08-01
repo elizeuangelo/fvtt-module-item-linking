@@ -27,7 +27,7 @@ const settings = {
     },
     update: {
         scope: 'world',
-        config: true,
+        config: false,
         type: Number,
         default: 0,
     },
