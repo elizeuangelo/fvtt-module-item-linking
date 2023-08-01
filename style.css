@@ -15,14 +15,15 @@
     position: relative;
     flex: 0;
     line-height: normal;
-    padding: 4px;
+    margin-right: 8px;
     height: fit-content;
     flex-basis: fit-content;
     text-align: center;
     align-self: center;
-    color: var(--color-shadow-dark);
-    border: 1px dashed var(--color-border-light-tertiary);
-    background: var(--color-bg-option);
+    color: red;
+    border: 1px solid red;
+    border-radius: 50%;
+    padding: 4px;
 }
 
 /*.dnd5e.sheet .sheet-header .summary a.item-link {

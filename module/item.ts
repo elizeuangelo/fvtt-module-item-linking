@@ -69,7 +69,7 @@ function preUpdateItem(item: ItemExtended, changes: any, options: any) {
 	const linkedUpdate = options?.linkedUpdate ?? false;
 
 	if (linkedUpdate === false && linked === true && (changes.flags?.[MODULE]?.isLinked || changes.flags?.[MODULE]?.baseItem)) {
-		if (!item.compendium) {
+		if (!item.compendium || item.isEmbedded) {
 			fromUuid(baseItemId)
 				.then((baseItem: ItemExtended | null) => {
 					const addChanges = baseItem ? createChanges(item, baseItem) : {};
@@ -119,7 +119,7 @@ function preUpdateItem(item: ItemExtended, changes: any, options: any) {
 		});
 	}
 
-	if (item.compendium) {
+	if (item.compendium && !item.isEmbedded) {
 		// Updates Every Derivation Related to the Item
 		const derived = findDerived()[item.uuid];
 		const derived_changes = deepClone(changes);
