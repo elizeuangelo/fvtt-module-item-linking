@@ -25,7 +25,7 @@ export function findDerived() {
 
 function getKeepProperties() {
 	const additional = getSetting('linkHeader') ? [] : ['name', 'img'];
-	return [`flags`, '_id', '_stats', 'ownership', 'folder', 'sort', ...KEEP_PROPERTIES, ...additional];
+	return [`flags.item-linking`, '_id', '_stats', 'ownership', 'folder', 'sort', ...KEEP_PROPERTIES, ...additional];
 }
 
 function removeKeepProperties(changes: Object, keys = getKeepProperties()) {
@@ -108,6 +108,15 @@ function preUpdateItem(item: ItemExtended, changes: any, options: any) {
 				.catch((er) => {
 					item.update(changes, { linkedUpdate: true });
 				});
+
+			const srcFlags = item._source.flags['item-linking'];
+			if (srcFlags) {
+				if (!('item-linking' in item.flags)) delete item._source.flags['item-linking'];
+				else {
+					if ('isLinked' in srcFlags && !('isLinked' in item.flags)) delete srcFlags.isLinked;
+					if ('baseItem' in srcFlags && !('baseItem' in item.flags)) delete srcFlags.baseItem;
+				}
+			}
 
 			return false;
 		}
