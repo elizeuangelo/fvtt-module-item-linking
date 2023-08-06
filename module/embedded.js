@@ -8,15 +8,12 @@ function preUpdate(document, changes) {
     const derived = findDerived()[item.uuid];
     const collectionName = document.constructor.metadata.name;
     derived.forEach((derivation) => {
-        if (derivation.parent instanceof CONFIG.Actor.documentClass) {
-            if (getSetting('enforceActorsFXs')) {
-                const new_changes = deepClone(changes);
-                new_changes._id = getFlag(derivation, 'embedded')[changes._id];
-                derivation.parent.updateEmbeddedDocuments(collectionName, [new_changes]);
-            }
+        const new_changes = deepClone(changes);
+        new_changes._id = getFlag(derivation, 'embedded')[changes._id];
+        derivation.updateEmbeddedDocuments(collectionName, [new_changes]);
+        if (getSetting('enforceActorsFXs') && document.transfer && derivation.parent instanceof CONFIG.Actor.documentClass) {
+            derivation.parent.updateEmbeddedDocuments(collectionName, [new_changes]);
         }
-        else
-            derivation.updateEmbeddedDocuments(collectionName, [changes]);
     });
 }
 function preCreate(document, data, context) {
@@ -36,14 +33,11 @@ function preCreate(document, data, context) {
         const new_data = deepClone(data);
         new_data.origin = derivation.uuid;
         new_data._id = randomID();
-        if (derivation.parent instanceof CONFIG.Actor.documentClass) {
-            if (getSetting('enforceActorsFXs')) {
-                derivation.parent.createEmbeddedDocuments(collectionName, [new_data], { keepId: true });
-                derivation.update({ [`flags.${MODULE}.embedded.${id}`]: new_data._id });
-            }
+        derivation.createEmbeddedDocuments(collectionName, [new_data], { keepId: true });
+        derivation.update({ [`flags.${MODULE}.embedded.${id}`]: new_data._id });
+        if (getSetting('enforceActorsFXs') && document.transfer && derivation.parent instanceof CONFIG.Actor.documentClass) {
+            derivation.parent.createEmbeddedDocuments(collectionName, [new_data], { keepId: true });
         }
-        else
-            derivation.createEmbeddedDocuments(collectionName, [new_data], { keepId: true });
     });
 }
 function preDelete(document) {
@@ -53,14 +47,14 @@ function preDelete(document) {
     const derived = findDerived()[item.uuid];
     const collectionName = document.constructor.metadata.name;
     derived.forEach((derivation) => {
-        if (derivation.parent instanceof CONFIG.Actor.documentClass) {
-            if (getSetting('enforceActorsFXs')) {
-                derivation.parent.deleteEmbeddedDocuments(collectionName, [getFlag(derivation, 'embedded')[document.id]]);
-                derivation.update({ [`flags.${MODULE}.embedded.-=${document.id}`]: null }, { performDeletions: true });
-            }
+        derivation.update({ [`flags.${MODULE}.embedded.-=${document.id}`]: null }, { performDeletions: true });
+        const id = derivation.flags[MODULE]?.embedded[document.id];
+        if (!id)
+            return;
+        derivation.deleteEmbeddedDocuments(collectionName, [id]);
+        if (getSetting('enforceActorsFXs') && document.transfer && derivation.parent instanceof CONFIG.Actor.documentClass) {
+            derivation.parent.deleteEmbeddedDocuments(collectionName, [id]);
         }
-        else
-            derivation.deleteEmbeddedDocuments(collectionName, [document.id]);
     });
 }
 Object.keys(CONFIG.Item.documentClass.metadata.embedded).forEach((type) => {
