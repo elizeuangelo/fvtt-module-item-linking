@@ -107,9 +107,9 @@ function preUpdateItem(item, changes, options) {
                 if (!('item-linking' in item.flags))
                     delete item._source.flags['item-linking'];
                 else {
-                    if ('isLinked' in srcFlags && !('isLinked' in item.flags))
+                    if ('isLinked' in srcFlags && !('isLinked' in item.flags['item-linking']))
                         delete srcFlags.isLinked;
-                    if ('baseItem' in srcFlags && !('baseItem' in item.flags))
+                    if ('baseItem' in srcFlags && !('baseItem' in item.flags['item-linking']))
                         delete srcFlags.baseItem;
                 }
             }
