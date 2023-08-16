@@ -13,7 +13,7 @@ async function create(data, context) {
             const baseItem = (await fromUuid(itemData.flags[MODULE].baseItem));
             if (!baseItem)
                 continue;
-            const changes = createChanges(itemData, baseItem._source);
+            const changes = createChanges(itemData, baseItem._source, false);
             mergeObject(itemData, changes);
             if (getSetting('enforceActorsFXs')) {
                 for (const collection of Object.values(CONFIG.Item.documentClass.metadata.embedded)) {

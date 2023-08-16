@@ -25,7 +25,7 @@ async function create(data: Actor['data'] & Record<string, unknown>, context: Op
 			if (!baseItem) continue;
 
 			// Update Item
-			const changes = createChanges(itemData, baseItem._source);
+			const changes = createChanges(itemData, baseItem._source, false);
 			mergeObject(itemData, changes);
 
 			// Update Actor FXs

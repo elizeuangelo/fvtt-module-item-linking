@@ -57,8 +57,8 @@ function removeKeepProperties(changes: Object, keys = getKeepProperties()) {
 }
 
 export function createChanges(itemData: ItemExtended['data'], baseItemData: ItemExtended['data'], ignoreEmbedded = true) {
-	const source = removeKeepProperties(foundry.utils.deepClone(itemData), getKeepProperties(ignoreEmbedded));
-	const baseItemSource = removeKeepProperties(foundry.utils.deepClone(baseItemData));
+	const source = removeKeepProperties(foundry.utils.deepClone(itemData));
+	const baseItemSource = removeKeepProperties(foundry.utils.deepClone(baseItemData), getKeepProperties(ignoreEmbedded));
 	const diff = foundry.utils.diffObject(source, baseItemSource);
 	const deletions = deletionKeys(source, baseItemSource);
 	return mergeObject(deletions, diff);
