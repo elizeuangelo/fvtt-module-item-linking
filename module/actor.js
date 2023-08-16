@@ -6,6 +6,8 @@ async function create(data, context) {
     for (const actor of baseData) {
         const data = actor.toObject?.() ?? actor;
         createData.push(data);
+        if (!data.items?.length)
+            continue;
         data._id = randomID();
         context.keepId = true;
         const linked = data.items.filter((i) => MODULE in i.flags && i.flags[MODULE].isLinked);
