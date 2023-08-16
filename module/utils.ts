@@ -27,3 +27,7 @@ export function deletionKeys(original: Object, other: Object) {
 		return obj;
 	}, {});
 }
+
+export function isPrimaryItem(i: ItemExtended) {
+	return !i.parent?.token || i.parent!.token!.delta._source.items.includes(i._source);
+}
