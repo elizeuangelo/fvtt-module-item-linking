@@ -1,7 +1,7 @@
 import { getFlag } from './flags.js';
 import { MODULE, getSetting } from './settings.js';
 import { KEEP_PROPERTIES } from './system.js';
-import { deletionKeys } from './utils.js';
+import { deletionKeys, isPrimaryItem } from './utils.js';
 export function findDerived() {
     const items = game.items.contents;
     const tokens = game
@@ -18,15 +18,28 @@ export function findDerived() {
         const baseItemUuid = getFlag(i, 'baseItem');
         if (!baseItemUuid)
             return;
+        if (!isPrimaryItem(i))
+            return;
         if (!frequency[baseItemUuid])
             frequency[baseItemUuid] = [];
         frequency[baseItemUuid].push(i);
     });
     return frequency;
 }
-function getKeepProperties() {
+function getKeepProperties(keepEmbedded = true) {
     const additional = getSetting('linkHeader') ? [] : ['name', 'img'];
-    return [`flags.item-linking`, '_id', '_stats', 'ownership', 'folder', 'sort', ...KEEP_PROPERTIES, ...additional];
+    return [
+        'flags.item-linking',
+        'flags.beavers-crafting',
+        '_id',
+        '_stats',
+        'ownership',
+        'folder',
+        'sort',
+        ...KEEP_PROPERTIES,
+        ...additional,
+        ...(keepEmbedded ? Object.values(CONFIG.Item.documentClass.metadata.embedded) : []),
+    ];
 }
 function removeKeepProperties(changes, keys = getKeepProperties()) {
     keys.forEach((key) => {
@@ -48,9 +61,9 @@ function removeKeepProperties(changes, keys = getKeepProperties()) {
     });
     return changes;
 }
-export function createChanges(item, baseItem) {
-    const source = removeKeepProperties(foundry.utils.deepClone(item._source));
-    const baseItemSource = removeKeepProperties(foundry.utils.deepClone(baseItem._source));
+export function createChanges(itemData, baseItemData, ignoreEmbedded = true) {
+    const source = removeKeepProperties(foundry.utils.deepClone(itemData), getKeepProperties(ignoreEmbedded));
+    const baseItemSource = removeKeepProperties(foundry.utils.deepClone(baseItemData));
     const diff = foundry.utils.diffObject(source, baseItemSource);
     const deletions = deletionKeys(source, baseItemSource);
     return mergeObject(deletions, diff);
@@ -74,25 +87,41 @@ function preUpdateItem(item, changes, options) {
         if (!item.compendium || item.isEmbedded) {
             fromUuid(baseItemId)
                 .then((baseItem) => {
-                const addChanges = baseItem ? createChanges(item, baseItem) : {};
+                const addChanges = baseItem ? createChanges(item._source, baseItem._source) : {};
                 mergeObject(changes, addChanges);
                 Object.entries(CONFIG.Item.documentClass.metadata.embedded).forEach(([collectionName, collection]) => {
-                    const keepIds = baseItem?._source[collection].map((fx) => fx._id) ?? [];
-                    const deleteIds = (item.parent?._source ?? item._source)[collection]
-                        .filter((fx) => !keepIds.includes(fx._id))
-                        .map((fx) => fx._id);
-                    if (deleteIds.length) {
-                        const primaryDoc = item.parent ?? item;
-                        if (!item.parent || getSetting('enforceActorsFXs'))
-                            primaryDoc.deleteEmbeddedDocuments(collectionName, deleteIds);
-                    }
-                    if (item.isEmbedded) {
-                        if (getSetting('enforceActorsFXs')) {
-                            const new_data = (deepClone(baseItem?._source[collection]) ?? []).filter((fx) => !item.parent[collection].get(fx._id));
-                            new_data.forEach((source) => (source.origin = item.uuid));
-                            item.parent.createEmbeddedDocuments(collectionName, new_data, { keepId: true });
+                    const itemIds = item._source[collection].map((fx) => fx._id);
+                    const baseIds = baseItem?._source[collection].map((fx) => fx._id) ?? [];
+                    const createIds = baseIds.filter((id) => !itemIds.includes(id));
+                    const updateIds = baseIds.filter((id) => itemIds.includes(id));
+                    const deleteIds = itemIds.filter((id) => !baseIds.includes(id));
+                    if (createIds.length) {
+                        const data = createIds.map((id) => baseItem._source[collection].find((fx) => fx._id === id));
+                        data.forEach((d) => {
+                            if ('origin' in d)
+                                d.origin = item.uuid;
+                        });
+                        item.createEmbeddedDocuments(collectionName, data, { keepId: true });
+                        if (getSetting('enforceActorsFXs') && item.parent instanceof CONFIG.Actor.documentClass) {
+                            item.parent.createEmbeddedDocuments(collectionName, data, { keepId: true });
                         }
-                        delete changes[collection];
+                    }
+                    if (updateIds.length) {
+                        const data = updateIds.map((id) => baseItem._source[collection].find((fx) => fx._id === id));
+                        data.forEach((d) => {
+                            if ('origin' in d)
+                                d.origin = item.uuid;
+                        });
+                        item.updateEmbeddedDocuments(collectionName, data);
+                        if (getSetting('enforceActorsFXs') && item.parent instanceof CONFIG.Actor.documentClass) {
+                            item.parent.updateEmbeddedDocuments(collectionName, data);
+                        }
+                    }
+                    if (deleteIds.length) {
+                        item.deleteEmbeddedDocuments(collectionName, deleteIds);
+                        if (getSetting('enforceActorsFXs') && item.parent instanceof CONFIG.Actor.documentClass) {
+                            item.parent.deleteEmbeddedDocuments(collectionName, deleteIds);
+                        }
                     }
                 });
                 if (Object.keys(changes).length === 0)
@@ -118,7 +147,6 @@ function preUpdateItem(item, changes, options) {
         setProperty(changes, `flags.${MODULE}`, {
             baseItem: null,
             isLinked: false,
-            embedded: {},
         });
     }
     if (item.compendium && !item.isEmbedded) {
@@ -127,7 +155,7 @@ function preUpdateItem(item, changes, options) {
         if (derived_changes.uses?.max === '') {
             derived_changes.uses.value = null;
         }
-        derived.map((derivation) => derivation.update({ ...createChanges(derivation, item), ...removeKeepProperties(derived_changes) }, { linkedUpdate: true }));
+        derived.forEach((derivation) => derivation.update({ ...createChanges(derivation._source, item._source), ...removeKeepProperties(derived_changes) }, { linkedUpdate: true }));
     }
 }
 function updateCompendium(item) {
@@ -139,28 +167,7 @@ function updateCompendium(item) {
         });
     }
 }
-function mapIds(sourceCollection) {
-    const map = {};
-    const collection = sourceCollection.map((fx) => {
-        const _id = randomID();
-        map[fx._id] = _id;
-        return { ...fx, _id };
-    });
-    return [map, collection];
-}
-function preCreateItem(document, data, context) {
-    if (!document.isEmbedded || !getFlag(document, 'isLinked') || context.linkedUpdate)
-        return;
-    fromUuid(getFlag(document, 'baseItem') ?? '').then((baseItem) => {
-        if (baseItem) {
-            Object.entries(CONFIG.Item.documentClass.metadata.embedded).forEach(([collectionName, collection]) => ([data[`flags.${MODULE}.embedded`], data[collection]] = mapIds(baseItem._source[collection])));
-        }
-        document.parent.createEmbeddedDocuments('Item', [data], { ...context, linkedUpdate: true });
-    });
-    return false;
-}
 Hooks.on('preUpdateItem', preUpdateItem);
 Hooks.on('updateItem', updateItem);
-Hooks.on('preCreateItem', preCreateItem);
 Hooks.on('createItem', updateCompendium);
 Hooks.on('deleteItem', updateCompendium);

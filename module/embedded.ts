@@ -1,9 +1,55 @@
 import { getFlag } from './flags.js';
 import { findDerived } from './item.js';
-import { MODULE, getSetting } from './settings.js';
+import { getSetting } from './settings.js';
+
+function isFirstItem(i: ItemExtended) {
+	if (!(i.parent instanceof CONFIG.Actor.documentClass) || !getFlag(i, 'isLinked')) return false;
+	const baseItem = getFlag(i, 'baseItem');
+	return i.parent.items.find((i2) => getFlag(i2, 'isLinked') && baseItem === getFlag(i, 'baseItem')) === i;
+}
+
+function preCreate(document: ActiveEffect, data, context) {
+	if (getSetting('enforceActorsFXs') && document.parent instanceof CONFIG.Actor.documentClass) {
+		if (document.parent.effects.get(data._id)) return false;
+		context.keepId = true;
+	}
+	if (
+		!document.isEmbedded ||
+		!(document.parent instanceof CONFIG.Item.documentClass) ||
+		!document.compendium ||
+		document.parent.isEmbedded
+	)
+		return;
+
+	// Creates the Unique ID
+	document._source._id = data._id = randomID();
+	context.keepId = true;
+
+	// Updates Every Derivation Related to the Item
+	const item = document.parent;
+	const derived = findDerived()[item.uuid];
+	const collectionName = (document.constructor as any).metadata.name;
+
+	derived.forEach((derivation) => {
+		const new_data = deepClone(data);
+		new_data.origin = derivation.uuid;
+		derivation.createEmbeddedDocuments(collectionName, [new_data], { keepId: true });
+
+		// Creates the ActiveFX for the Actor
+		if (getSetting('enforceActorsFXs') && isFirstItem(derivation)) {
+			derivation.parent!.createEmbeddedDocuments(collectionName, [new_data], { keepId: true });
+		}
+	});
+}
 
 function preUpdate(document: ActiveEffect, changes) {
-	if (!document.isEmbedded || !(document.parent instanceof CONFIG.Item.documentClass) || !document.compendium) return;
+	if (
+		!document.isEmbedded ||
+		!(document.parent instanceof CONFIG.Item.documentClass) ||
+		!document.compendium ||
+		document.parent.isEmbedded
+	)
+		return;
 
 	// Updates Every Derivation Related to the Item
 	const item = document.parent;
@@ -12,46 +58,32 @@ function preUpdate(document: ActiveEffect, changes) {
 
 	derived.forEach((derivation) => {
 		const new_changes = deepClone(changes);
-		new_changes._id = getFlag(derivation, 'embedded')[changes._id];
 		derivation.updateEmbeddedDocuments(collectionName, [new_changes]);
 
 		// Creates the ActiveFX for the Actor
-		if (getSetting('enforceActorsFXs') && document.transfer && derivation.parent instanceof CONFIG.Actor.documentClass) {
-			derivation.parent.updateEmbeddedDocuments(collectionName, [new_changes]);
-		}
-	});
-}
-
-function preCreate(document: ActiveEffect, data, context) {
-	if (!document.isEmbedded) return;
-	if (getSetting('enforceActorsFXs') && document.parent instanceof CONFIG.Actor.documentClass) context.keepId = true;
-	if (!(document.parent instanceof CONFIG.Item.documentClass) || !document.compendium) return;
-
-	// Updates Every Derivation Related to the Item
-	const item = document.parent;
-	const derived = findDerived()[item.uuid];
-	const collectionName = (document.constructor as any).metadata.name;
-
-	const id = randomID();
-	document._source._id = data._id = id;
-	context.keepId = true;
-	derived.forEach((derivation) => {
-		const new_data = deepClone(data);
-		new_data.origin = derivation.uuid;
-		new_data._id = randomID();
-
-		derivation.createEmbeddedDocuments(collectionName, [new_data], { keepId: true });
-		derivation.update({ [`flags.${MODULE}.embedded.${id}`]: new_data._id });
-
-		// Creates the ActiveFX for the Actor
-		if (getSetting('enforceActorsFXs') && document.transfer && derivation.parent instanceof CONFIG.Actor.documentClass) {
-			derivation.parent.createEmbeddedDocuments(collectionName, [new_data], { keepId: true });
+		if (getSetting('enforceActorsFXs') && derivation.parent instanceof CONFIG.Actor.documentClass) {
+			const fx = derivation.parent!.effects.get(changes._id);
+			if (fx?.origin === derivation.uuid) derivation.parent.updateEmbeddedDocuments(collectionName, [new_changes]);
 		}
 	});
 }
 
 function preDelete(document: ActiveEffect) {
-	if (!document.isEmbedded || !(document.parent instanceof CONFIG.Item.documentClass) || !document.compendium) return;
+	if (
+		!document.isEmbedded ||
+		!(document.parent instanceof CONFIG.Item.documentClass) ||
+		!document.compendium ||
+		document.parent.isEmbedded
+	) {
+		if (document.parent instanceof CONFIG.Actor.documentClass && 'origin' in document) {
+			const existsInOther = document.parent.items.contents.find((i) => i.effects.find((fx) => fx.id === document.id));
+			if (existsInOther) {
+				document.update({ origin: existsInOther.uuid });
+				return false;
+			}
+		}
+		return;
+	}
 
 	// Updates Every Derivation Related to the Item
 	const item = document.parent;
@@ -59,21 +91,19 @@ function preDelete(document: ActiveEffect) {
 
 	const collectionName = (document.constructor as any).metadata.name;
 	derived.forEach((derivation) => {
-		derivation.update({ [`flags.${MODULE}.embedded.-=${document.id}`]: null }, { performDeletions: true });
-		const id = derivation.flags[MODULE]?.embedded[document.id!];
-		if (!id) return;
-		derivation.deleteEmbeddedDocuments(collectionName, [id]);
+		derivation.deleteEmbeddedDocuments(collectionName, [document.id!]);
 
 		// Deletes the ActiveFX for the Actor
-		if (getSetting('enforceActorsFXs') && document.transfer && derivation.parent instanceof CONFIG.Actor.documentClass) {
-			derivation.parent.deleteEmbeddedDocuments(collectionName, [id]);
+		if (getSetting('enforceActorsFXs') && derivation.parent instanceof CONFIG.Actor.documentClass) {
+			const fx = derivation.parent!.effects.get(document.id!);
+			if (fx?.origin === derivation.uuid) derivation.parent.deleteEmbeddedDocuments(collectionName, [document.id!]);
 		}
 	});
 }
 
 /** -------------------------------------------- */
 Object.keys(CONFIG.Item.documentClass.metadata.embedded).forEach((type) => {
-	Hooks.on(`preUpdate${type}`, preUpdate);
 	Hooks.on(`preCreate${type}`, preCreate);
+	Hooks.on(`preUpdate${type}`, preUpdate);
 	Hooks.on(`preDelete${type}`, preDelete);
 });

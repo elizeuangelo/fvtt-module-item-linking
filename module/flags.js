@@ -10,7 +10,6 @@ function preCreateItem(item) {
     const baseFlags = {
         baseItem: null,
         isLinked: false,
-        embedded: {},
     };
     const isCompendium = Boolean(item.compendium);
     const itemFlags = isCompendium ? baseFlags : item._source.flags['item-linking'] || baseFlags;

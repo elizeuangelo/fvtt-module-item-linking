@@ -151,7 +151,9 @@ function renderActorSheet(sheet, html) {
         if (!fx)
             return;
         fromUuid(fx.origin).then((item) => {
-            if (item === null || !getFlag(item, 'isLinked'))
+            if (item === null)
+                return;
+            if (!getFlag(item, 'isLinked'))
                 return;
             li.querySelector('a[data-action="edit"]')?.remove();
             li.querySelector('a[data-action="delete"]')?.remove();
@@ -163,7 +165,7 @@ function renderActorSheet(sheet, html) {
     });
 }
 function AFXcontextOptions(fx, buttons) {
-    if (!getSetting('enforceActorsFXs'))
+    if (!getSetting('enforceActorsFXs') || !fx.transfer)
         return;
     const rgx = /Item.([A-Za-z0-9]+)/;
     const match = rgx.exec(fx.origin);

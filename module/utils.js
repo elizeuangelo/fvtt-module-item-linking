@@ -23,3 +23,6 @@ export function deletionKeys(original, other) {
         return obj;
     }, {});
 }
+export function isPrimaryItem(i) {
+    return !i.parent?.token || i.parent.token.delta._source.items.includes(i._source);
+}

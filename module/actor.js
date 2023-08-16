@@ -1,23 +1,43 @@
-import { getFlag } from './flags.js';
 import { createChanges } from './item.js';
-function preCreateActor(actor, data, options) {
-    if (!options.fromCompendium || options.linkedUpdate)
-        return;
-    const linked = actor.items.contents.filter((i) => getFlag(i, 'isLinked') && getFlag(i, 'baseItem'));
-    if (linked.length) {
-        Promise.all(linked.map((i) => fromUuid(getFlag(i, 'baseItem')))).then((items) => {
-            items.forEach((baseItem, idx) => {
-                if (baseItem === null)
-                    return;
-                const item = linked[idx];
-                const dataSource = data.items.find((i) => i._id === item.id);
-                const changes = createChanges(item, baseItem);
-                mergeObject(dataSource, changes);
-            });
-            delete data._id;
-            Actor.create(data, { ...options, linkedUpdate: true });
-        });
+import { MODULE, getSetting } from './settings.js';
+async function create(data, context) {
+    const createData = [];
+    const baseData = data instanceof Array ? data : [data];
+    for (const actor of baseData) {
+        const data = actor.toObject?.() ?? actor;
+        createData.push(data);
+        data._id = randomID();
+        context.keepId = true;
+        const linked = data.items.filter((i) => MODULE in i.flags && i.flags[MODULE].isLinked);
+        for (const itemData of linked) {
+            const baseItem = (await fromUuid(itemData.flags[MODULE].baseItem));
+            if (!baseItem)
+                continue;
+            const changes = createChanges(itemData, baseItem._source);
+            mergeObject(itemData, changes);
+            if (getSetting('enforceActorsFXs')) {
+                for (const collection of Object.values(CONFIG.Item.documentClass.metadata.embedded)) {
+                    if (!(collection in data))
+                        continue;
+                    for (const fx of itemData[collection]) {
+                        const actorFxsIds = data[collection].map((fx) => fx._id);
+                        const target = actorFxsIds.includes(fx._id)
+                            ? data[collection].find((x) => x._id === fx._id)
+                            : deepClone(fx);
+                        if ('origin' in target)
+                            target.origin = `Actor.${data._id}.Item.${itemData._id}`;
+                        if (!actorFxsIds.includes(fx._id)) {
+                            data[collection].push(target);
+                        }
+                    }
+                }
+            }
+        }
     }
-    return !linked.length;
+    const created = (await this.createDocuments(createData, context));
+    return data instanceof Array ? created : created.shift();
 }
-Hooks.on('preCreateActor', preCreateActor);
+Hooks.on('ready', () => {
+    CONFIG.Actor.documentClass.prototype._oldCreate = CONFIG.Actor.documentClass.prototype.create;
+    CONFIG.Actor.documentClass.create = create;
+});

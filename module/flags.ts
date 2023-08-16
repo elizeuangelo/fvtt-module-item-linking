@@ -13,7 +13,6 @@ function preCreateItem(item: ItemExtended) {
 	const baseFlags: ModuleFlags = {
 		baseItem: null,
 		isLinked: false,
-		embedded: {},
 	};
 
 	const isCompendium = Boolean(item.compendium);
