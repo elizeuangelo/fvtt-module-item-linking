@@ -26,6 +26,14 @@ const settings = {
 		type: Boolean,
 		default: false,
 	},
+	linkPropertyExceptions: {
+		name: 'Link Property Exceptions',
+		hint: 'Additional exception properties, in addition to the system configuration. Use a comma to separate the tags, example: "flags.beavers-crafting,system.description.value"',
+		scope: 'world',
+		config: true,
+		type: String,
+		default: '',
+	},
 	update: {
 		scope: 'world',
 		config: false,

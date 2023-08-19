@@ -28,6 +28,7 @@ export function findDerived() {
 }
 function getKeepProperties(keepEmbedded = true) {
     const additional = getSetting('linkHeader') ? [] : ['name', 'img'];
+    const exceptions = getSetting('linkPropertyExceptions');
     return [
         'flags.item-linking',
         'flags.beavers-crafting',
@@ -38,6 +39,7 @@ function getKeepProperties(keepEmbedded = true) {
         'sort',
         ...KEEP_PROPERTIES,
         ...additional,
+        ...(exceptions !== '' ? exceptions.split(',') : []),
         ...(keepEmbedded ? Object.values(CONFIG.Item.documentClass.metadata.embedded) : []),
     ];
 }
