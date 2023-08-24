@@ -91,7 +91,10 @@ function preUpdateItem(item, changes, options) {
                 .then((baseItem) => {
                 const addChanges = baseItem ? createChanges(item._source, baseItem._source) : {};
                 mergeObject(changes, addChanges);
+                const exceptions = getSetting('linkPropertyExceptions').split(',');
                 Object.entries(CONFIG.Item.documentClass.metadata.embedded).forEach(([collectionName, collection]) => {
+                    if (exceptions.includes(collection))
+                        return;
                     const itemIds = item._source[collection].map((fx) => fx._id);
                     const baseIds = baseItem?._source[collection].map((fx) => fx._id) ?? [];
                     const createIds = baseIds.filter((id) => !itemIds.includes(id));

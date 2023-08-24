@@ -88,9 +88,12 @@ function preUpdateItem(item: ItemExtended, changes: any, options: any) {
 				.then((baseItem: ItemExtended | null) => {
 					const addChanges = baseItem ? createChanges(item._source, baseItem._source) : {};
 					mergeObject(changes, addChanges);
+					const exceptions = getSetting('linkPropertyExceptions').split(',');
 
 					Object.entries(CONFIG.Item.documentClass.metadata.embedded).forEach(
 						([collectionName, collection]: [string, any]) => {
+							if (exceptions.includes(collection)) return;
+
 							const itemIds: string[] = item._source[collection].map((fx) => fx._id);
 							const baseIds: string[] = baseItem?._source[collection].map((fx) => fx._id) ?? [];
 

@@ -96,7 +96,8 @@ function preDelete(document: ActiveEffect) {
 		// Deletes the ActiveFX for the Actor
 		if (getSetting('enforceActorsFXs') && derivation.parent instanceof CONFIG.Actor.documentClass) {
 			const fx = derivation.parent!.effects.get(document.id!);
-			if (fx?.origin === derivation.uuid) derivation.parent.deleteEmbeddedDocuments(collectionName, [document.id!]);
+			if (fx?.origin === derivation.uuid)
+				setTimeout(() => derivation.parent!.deleteEmbeddedDocuments(collectionName, [document.id!]), 1000);
 		}
 	});
 }
