@@ -56,7 +56,7 @@ function preDelete(document) {
         !(document.parent instanceof CONFIG.Item.documentClass) ||
         !document.compendium ||
         document.parent.isEmbedded) {
-        if (document.parent instanceof CONFIG.Actor.documentClass && 'origin' in document) {
+        if (document.parent instanceof CONFIG.Actor.documentClass && 'origin' in document && getSetting('enforceActorsFXs')) {
             const existsInOther = document.parent.items.contents.find((i) => i.effects.find((fx) => fx.id === document.id));
             if (existsInOther) {
                 document.update({ origin: existsInOther.uuid });
