@@ -173,7 +173,7 @@ function preUpdateItem(item: ItemExtended, changes: any, options: any) {
 			derived_changes.uses.value = null;
 		}
 
-		derived.forEach((derivation) =>
+		derived?.forEach((derivation) =>
 			derivation.update(
 				{ ...createChanges(derivation._source, item._source), ...removeKeepProperties(derived_changes) },
 				{ linkedUpdate: true }

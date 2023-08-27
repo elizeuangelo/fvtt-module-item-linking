@@ -160,7 +160,7 @@ function preUpdateItem(item, changes, options) {
         if (derived_changes.uses?.max === '') {
             derived_changes.uses.value = null;
         }
-        derived.forEach((derivation) => derivation.update({ ...createChanges(derivation._source, item._source), ...removeKeepProperties(derived_changes) }, { linkedUpdate: true }));
+        derived?.forEach((derivation) => derivation.update({ ...createChanges(derivation._source, item._source), ...removeKeepProperties(derived_changes) }, { linkedUpdate: true }));
     }
 }
 function updateCompendium(item) {
