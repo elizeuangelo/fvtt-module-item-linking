@@ -2,6 +2,8 @@ import { getFlag } from '../flags.js';
 import { PACKS, createUuidFromIndex, getItemsFromCompendiumsByType } from '../packs.js';
 import { MODULE, getSetting } from '../settings.js';
 export const KEEP = [
+    'flags.item-linking.isLinked',
+    'flags.item-linking.baseItem',
     'system.consume.amount',
     'system.consume.target',
     'system.consume.type',
@@ -98,9 +100,12 @@ function renderItemSheet(sheet, html) {
     }
     if (!linked)
         return;
-    const rgx = /^system\./;
-    const filter = (input) => !(!rgx.exec(input.name) || KEEP.includes(input.name));
-    $([...html.find('input'), ...html.find('select')].filter(filter)).attr('disabled', '');
+    const rgx = /^system\.|^flags\./;
+    const filter = (input) => !(!rgx.exec(input.name) ||
+        KEEP.includes(input.name) ||
+        input.hasAttribute('data-link-keep') ||
+        (input.type === 'color' && input.previousElementSibling?.disabled));
+    $([...html.find('input'), ...html.find('select'), ...html.find('textarea')].filter(filter)).attr('disabled', '');
     if (getSetting('linkHeader')) {
         html.find('input[name="name"]').attr('disabled', '');
         html.find('img.profile').off('click');
@@ -116,12 +121,21 @@ function renderItemSheet(sheet, html) {
             if (weaponProperties[0].childElementCount < 2)
                 weaponProperties.remove();
         }
-        html[0].querySelectorAll('.form-group').forEach((v, idx) => {
+        html[0].querySelectorAll('.form-group:not(:has(button:only-child))').forEach((v, idx) => {
             const input = v.querySelector('input:not([value=""])');
             const inputNotDisabled = v.querySelector('input:not([disabled])');
             const selection = v.querySelector('select option[selected][value]:not([value=""])');
             const selectionNotDisabled = v.querySelector('selection:not([disabled])');
             const tag = v.querySelector('li.tag');
+            const color = v.querySelector('input[type=color]');
+            if (color && color.previousElementSibling?.disabled)
+                return v.remove();
+            const textarea = v.querySelector('textarea');
+            if (textarea) {
+                if (textarea.disabled && !textarea.textContent)
+                    v.remove();
+                return;
+            }
             if (input ||
                 (selection && !['spell', 'self'].includes(selection.value)) ||
                 tag ||
@@ -134,12 +148,12 @@ function renderItemSheet(sheet, html) {
         if (dmgHeader && !dmgHeader.nextElementSibling?.classList.contains('damage-parts')) {
             dmgHeader.remove();
         }
-        [...html.find('.details h3')].forEach((el) => {
+        [...html.find('h3.form-header')].forEach((el) => {
             const next = el.nextElementSibling;
             if (next === null || next.tagName === 'H3')
                 el.remove();
         });
-        sheet.element.css('height', 'auto');
+        sheet.setPosition({ height: 'auto' });
     }
 }
 function renderActorSheet(sheet, html) {

@@ -3,6 +3,8 @@ import { PACKS, createUuidFromIndex, getItemsFromCompendiumsByType } from '../pa
 import { MODULE, getSetting } from '../settings.js';
 
 export const KEEP = [
+	'flags.item-linking.isLinked',
+	'flags.item-linking.baseItem',
 	'system.consume.amount',
 	'system.consume.target',
 	'system.consume.type',
@@ -115,10 +117,16 @@ function renderItemSheet(sheet: ItemSheet, html: JQuery) {
 	if (!linked) return;
 
 	// Disable all non editable fields
-	const rgx = /^system\./;
-	const filter = (input: HTMLInputElement | HTMLSelectElement) => !(!rgx.exec(input.name) || KEEP.includes(input.name));
+	const rgx = /^system\.|^flags\./;
+	const filter = (input: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement) =>
+		!(
+			!rgx.exec(input.name) ||
+			KEEP.includes(input.name) ||
+			input.hasAttribute('data-link-keep') ||
+			(input.type === 'color' && (input.previousElementSibling as HTMLInputElement)?.disabled)
+		);
 
-	$([...html.find('input'), ...html.find('select')].filter(filter)).attr('disabled', '');
+	$([...html.find('input'), ...html.find('select'), ...html.find('textarea')].filter(filter)).attr('disabled', '');
 
 	// Disable headers if configured so
 	if (getSetting('linkHeader')) {
@@ -149,12 +157,19 @@ function renderItemSheet(sheet: ItemSheet, html: JQuery) {
 		}
 
 		// For every Form Group, remove if empty content
-		html[0].querySelectorAll('.form-group').forEach((v, idx) => {
+		html[0].querySelectorAll('.form-group:not(:has(button:only-child))').forEach((v, idx) => {
 			const input = v.querySelector('input:not([value=""])');
 			const inputNotDisabled = v.querySelector('input:not([disabled])');
 			const selection = v.querySelector('select option[selected][value]:not([value=""])');
 			const selectionNotDisabled = v.querySelector('selection:not([disabled])');
 			const tag = v.querySelector('li.tag');
+			const color = v.querySelector('input[type=color]');
+			if (color && (color.previousElementSibling as HTMLInputElement | null)?.disabled) return v.remove();
+			const textarea = v.querySelector('textarea');
+			if (textarea) {
+				if (textarea.disabled && !textarea.textContent) v.remove();
+				return;
+			}
 			if (
 				input ||
 				(selection && !['spell', 'self'].includes((selection as HTMLOptionElement).value)) ||
@@ -173,12 +188,12 @@ function renderItemSheet(sheet: ItemSheet, html: JQuery) {
 		}
 
 		// Delete Empty Headers
-		[...html.find('.details h3')].forEach((el) => {
+		[...html.find('h3.form-header')].forEach((el) => {
 			const next = el.nextElementSibling;
 			if (next === null || next.tagName === 'H3') el.remove();
 		});
 
-		sheet.element.css('height', 'auto');
+		sheet.setPosition({ height: 'auto' });
 	}
 }
 
