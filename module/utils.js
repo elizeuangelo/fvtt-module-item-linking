@@ -26,3 +26,6 @@ export function deletionKeys(original, other) {
 export function isPrimaryItem(i) {
     return !i.parent?.token || i.parent.token.delta._source.items.includes(i._source);
 }
+export function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}

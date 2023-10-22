@@ -1,6 +1,7 @@
 import { getFlag } from '../flags.js';
 import { PACKS, createUuidFromIndex, getItemsFromCompendiumsByType } from '../packs.js';
 import { MODULE, getSetting } from '../settings.js';
+import { sleep } from '../utils.js';
 export const KEEP = [
     'flags.item-linking.isLinked',
     'flags.item-linking.baseItem',
@@ -115,7 +116,7 @@ function renderItemSheet(sheet, html) {
     const fixes = [{ sel: 'input[name="system.uses.max"]', val: sheet.item.system.uses?.max ?? '' }];
     fixes.forEach((f) => html.find(f.sel).val(f.val));
     if (getSetting('hideUselessInformation')) {
-        html.find('input[type=checkbox][disabled]:not(:checked)').parent().remove();
+        html.find('input[type=checkbox][disabled]:only-of-type:not(:checked)').parent().remove();
         if (item.type === 'weapon') {
             const weaponProperties = html.find('div.weapon-properties');
             if (weaponProperties[0].childElementCount < 2)
@@ -196,6 +197,32 @@ function AFXcontextOptions(fx, buttons) {
         buttons.splice(i, 1);
     }
 }
-Hooks.on('renderItemSheet', renderItemSheet);
 Hooks.on('renderActorSheet5e', renderActorSheet);
 Hooks.on('dnd5e.getActiveEffectContextOptions', AFXcontextOptions);
+if (game.modules.get('magic-items-2')?.active) {
+    Hooks.on('renderItemSheet', async (sheet, html) => {
+        const tab = html.find('.tab.magic-items');
+        if (tab.length) {
+            const item = sheet.item;
+            const linked = getFlag(item, 'isLinked');
+            if (linked && (!item.compendium || item.isEmbedded)) {
+                for (let i = 0; i < 20; i++) {
+                    if (html.find('.magic-items-content').length)
+                        break;
+                    await sleep(100);
+                }
+                tab.find('.spell-drag-content').remove();
+                const drop = sheet._dragDrop.filter((list) => list.dropSelector === '.tab.magic-items');
+                drop.forEach((drop) => {
+                    Object.entries(drop.callbacks).forEach(([ev, fn]) => {
+                        drop.callbacks[ev] = function () { };
+                    });
+                });
+            }
+        }
+        renderItemSheet(sheet, html);
+    });
+}
+else {
+    Hooks.on('renderItemSheet', renderItemSheet);
+}

@@ -31,3 +31,7 @@ export function deletionKeys(original: Object, other: Object) {
 export function isPrimaryItem(i: ItemExtended) {
 	return !i.parent?.token || i.parent!.token!.delta._source.items.includes(i._source);
 }
+
+export function sleep(ms: number) {
+	return new Promise((resolve) => setTimeout(resolve, ms));
+}
