@@ -1,5 +1,5 @@
 import { MODULE } from "./settings.js";
-import { getActorAsync, getCompendiumCollectionAsync, parseAsArray } from "./utils.js";
+import { getActorAsync, getCompendiumCollectionAsync, parseAsArray, warn } from "./utils.js";
 
 const API = {
 
@@ -7,11 +7,19 @@ const API = {
    * A "Save Time" method for attempting to link through certain filters 
    * character objects to objects in a compendium list, useful when transferring 
    * an actor from one world to another
+   * 
+   * @param {Actor|string} actor The reference to the actor entity, can be a Actor or a Actor id, uuid, name
+   * @param {string|string[]} compendiumsFolderToCheck A list of folder names in the compendium directory from which to retrieve collections
+   * @param {Object} options
+   * @param {boolean} [options.onlyItems=true] Whether to automatically display the results in chat
+   * @param {string[]} [options.typesToFilter=[]] A list of types to filter e.g. ['weapon', 'equipment', 'consumable', 'tool', 'loot', 'spell', 'backpack', 'feat']
+   * @param {string} [options.compendiumForNoMatch=null]  Unmatched documents can be included in this compendium if present
+   * @returns {Promise<void>}
    */
-  async tryToUpdateActorWithLinkedItemsFromCompendiumFolder(actor, compendiumsFolderToCheck, options) {
+  async tryToUpdateActorWithLinkedDocumentsFromCompendiumFolder(actor, compendiumsFolderToCheck, options) {
 
     if(!compendiumsFolderToCheck) {
-      ui.notifications.warn(`${MODULE} | tryToUpdateActorWithLinkedItemsFromCompendiumFolder | No compendiums folder is been passed`);
+      ui.notifications.warn(`${MODULE} | tryToUpdateActorWithLinkedDocumentsFromCompendiumFolder | No compendiums folder is been passed`);
       return;
     }
 
@@ -29,7 +37,7 @@ const API = {
       );
     }
 
-    await this.tryToUpdateActorWithLinkedItemsFromCompendiums(actor, compendiumsFiltered, options);
+    await this.tryToUpdateActorWithLinkedDocumentsFromCompendiums(actor, compendiumsFiltered, options);
 
   },
 
@@ -37,11 +45,19 @@ const API = {
    * A "Save Time" method for attempting to link through certain filters 
    * character objects to objects in a compendium list, useful when transferring 
    * an actor from one world to another
+   * 
+   * @param {Actor|string} actor The reference to the actor entity, can be a Actor or a actor id, uuid, name
+   * @param {string|string[]} compendiumsToCheck A list of compendium collection references to the compendium collection entities, can be a CompendiumCollection or a CompendiumCollection id, uuid, name
+   * @param {Object} options
+   * @param {boolean} [options.onlyItems=true] Whether to automatically display the results in chat
+   * @param {string[]} [options.typesToFilter=[]] A list of types to filter e.g. ['weapon', 'equipment', 'consumable', 'tool', 'loot', 'spell', 'backpack', 'feat']
+   * @param {string} [options.compendiumForNoMatch=null] Unmatched documents can be included in this compendium if present
+   * @returns {Promise<void>}
    */
-  async tryToUpdateActorWithLinkedItemsFromCompendiums(actor, compendiumsToCheck, options) {
+  async tryToUpdateActorWithLinkedDocumentsFromCompendiums(actor, compendiumsToCheck, options) {
     const actorToUpdate = await getActorAsync(actor, false);
     if(!actorToUpdate) {
-      ui.notifications.warn(`${MODULE} | tryToUpdateActorWithLinkedItemsFromCompendiums | No Actor is been passed`);
+      ui.notifications.warn(`${MODULE} | tryToUpdateActorWithLinkedDocumentsFromCompendiums | No Actor is been passed`);
       return;
     }
 
@@ -183,6 +199,40 @@ const API = {
       });
     }
   },
+
+  /**
+   * @param {Item} itemToCheck Item to check
+   * @returns {boolean} if the item linked ?
+   */
+  isItemLinked(itemToCheck) {
+    const isLinked = itemToCheck.getFlag("item-linking", "baseItem");
+    if (isLinked) {
+      return true;
+    }
+    return false;
+  },
+
+  /**
+   * @param {Item} itemToCheck Item to check
+   * @returns {Item} The base linked item
+   */
+  retrieveLinkedItem(itemToCheck) {
+    if (!this.isItemLinked(itemToCheck)) {
+      warn(`The item ${itemToCheck.name}|${itemToCheck.uuid} is not linked`);
+      return null;
+    }
+    const baseItemUuid = itemToCheck.getFlag("item-linking", "baseItem");
+    if (!baseItemUuid) {
+      warn(`No baseItemUuid is been found for ${itemToCheck.name}|${itemToCheck.uuid}`);
+      return null;
+    }
+    const baseItem = fromUuidSync(baseItemUuid);
+    if (!baseItem) {
+      warn(`No baseItem is been found for ${itemToCheck.name}|${itemToCheck.uuid}`);
+      return null;
+    }
+    return baseItem;
+  }
 };
 
 export default API;

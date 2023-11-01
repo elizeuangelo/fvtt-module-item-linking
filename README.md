@@ -31,7 +31,7 @@ TODO DOCUMENTATION
 
 const actor = ...; // actor to update
 const compendiumsFolderToCheck = ['My Compendium Folder Name'] // array of folder names on the compendiums directory
-game.modules.get('item-linking').api.tryToUpdateActorWithLinkedItemsFromCompendiumFolder(actor, compendiumsFolderToCheck, {
+game.modules.get('item-linking').api.tryToUpdateActorWithLinkedDocumentsFromCompendiumFolder(actor, compendiumsFolderToCheck, {
 	onlyItems: true,
 	typesToFilter: ['weapon', 'equipment', 'consumable', 'tool', 'loot', 'spell', 'backpack', 'feat'],
 	compendiumForNoMatch: 'Miscellaneous'
@@ -42,7 +42,7 @@ game.modules.get('item-linking').api.tryToUpdateActorWithLinkedItemsFromCompendi
 
 const actor = ...; // actor to update
 const compendiumsToCheck = ...; // array of compendium collection
-game.modules.get('item-linking').api.tryToUpdateActorWithLinkedItemsFromCompendiums(actor, compendiumsToCheck, {
+game.modules.get('item-linking').api.tryToUpdateActorWithLinkedDocumentsFromCompendiums(actor, compendiumsToCheck, {
 	onlyItems: true,
 	typesToFilter: ['weapon', 'equipment', 'consumable', 'tool', 'loot', 'spell', 'backpack', 'feat'],
 	compendiumForNoMatch: 'Miscellaneous'
