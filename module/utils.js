@@ -29,3 +29,56 @@ export function isPrimaryItem(i) {
 export function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
+export function parseAsArray(obj) {
+    if(!obj) {
+      return [];
+    }
+    let arr = [];
+    if (typeof  obj === 'string' || obj instanceof String) {
+      arr =  obj.split(",");
+    } else if(obj.constructor === Array) {
+      arr = obj;
+    } else {
+      arr = [obj];
+    }
+    return arr;
+}
+export function stringIsUuid(inId) {
+    return typeof inId === "string" && (inId.match(/\./g) || []).length && !inId.endsWith(".");
+}
+export async function getCompendiumCollectionAsync(target, ignoreError) {
+    if(!target) {
+        ui.notifications.error(`CompendiumCollection is undefined`);
+		return null;
+    }
+    if (target instanceof CompendiumCollection) {
+      return target;
+    }
+    // This is just a patch for compatibility with others modules
+    if (target.document) {
+      target = target.document;
+    }
+    if (target instanceof CompendiumCollection) {
+      return target;
+    }
+    if (stringIsUuid(target)) {
+      target = await fromUuid(target);
+    } else {
+      target = game.packs.get(target) ?? game.packs.getName(target);
+    }
+    if(!target) {
+      if(ignoreError) {
+        warn(`CompendiumCollection is not found`);
+        return target;
+      } else {
+        ui.notifications.error(`CompendiumCollection is not found`);
+		return null;
+      }
+    }
+    // Type checking
+    if (!(target instanceof CompendiumCollection)) {
+        ui.notifications.error(`Invalid CompendiumCollection`);
+		return null;
+    }
+    return target;
+}
