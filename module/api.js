@@ -1,5 +1,5 @@
 import { MODULE } from "./settings.js";
-import { getCompendiumCollectionAsync, parseAsArray } from "./utils.js";
+import { getActorAsync, getCompendiumCollectionAsync, parseAsArray } from "./utils.js";
 
 const API = {
 
@@ -8,7 +8,7 @@ const API = {
    * character objects to objects in a compendium list, useful when transferring 
    * an actor from one world to another
    */
-  async tryToUpdateActorWithLinkedItemsFromCompendiumFolder(actorToUpdate, compendiumsFolderToCheck, options) {
+  async tryToUpdateActorWithLinkedItemsFromCompendiumFolder(actor, compendiumsFolderToCheck, options) {
 
     if(!compendiumsFolderToCheck) {
       ui.notifications.warn(`${MODULE} | tryToUpdateActorWithLinkedItemsFromCompendiumFolder | No compendiums folder is been passed`);
@@ -29,7 +29,7 @@ const API = {
       );
     }
 
-    await this.tryToUpdateActorWithLinkedItemsFromCompendiums(actorToUpdate, compendiumsFiltered, options);
+    await this.tryToUpdateActorWithLinkedItemsFromCompendiums(actor, compendiumsFiltered, options);
 
   },
 
@@ -38,7 +38,8 @@ const API = {
    * character objects to objects in a compendium list, useful when transferring 
    * an actor from one world to another
    */
-  async tryToUpdateActorWithLinkedItemsFromCompendiums(actorToUpdate, compendiumsToCheck, options) {
+  async tryToUpdateActorWithLinkedItemsFromCompendiums(actor, compendiumsToCheck, options) {
+    const actorToUpdate = await getActorAsync(actor, false);
     if(!actorToUpdate) {
       ui.notifications.warn(`${MODULE} | tryToUpdateActorWithLinkedItemsFromCompendiums | No Actor is been passed`);
       return;
@@ -53,7 +54,7 @@ const API = {
 
     const compendiums = [];
     for(const ref of compendiumsReferences) {
-      const comp = await getCompendiumCollectionAsync(ref);
+      const comp = await getCompendiumCollectionAsync(ref, false);
       if(comp) {
         compendiums.push(comp);
       }
