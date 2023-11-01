@@ -39,7 +39,7 @@ export function parseAsArray(obj) {
     if(!obj) {
       return [];
     }
-    let arr:any = [];
+    let arr = [];
     if (typeof  obj === 'string' || obj instanceof String) {
       arr =  obj.split(",");
     } else if(obj.constructor === Array) {

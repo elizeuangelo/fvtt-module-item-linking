@@ -1,6 +1,7 @@
 import { applyFixes, checkFixes } from './fixes/fixes.js';
+import API from './module/api.js';
 import { findDerived } from './module/item.js';
-import { getSetting } from './module/settings.js';
+import { MODULE, getSetting } from './module/settings.js';
 import { log } from './module/utils.js';
 import('./module/flags.js');
 import('./module/compendium.js');

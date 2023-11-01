@@ -69,7 +69,7 @@ export async function getCompendiumCollectionAsync(target, ignoreError) {
     if(!target) {
       if(ignoreError) {
         warn(`CompendiumCollection is not found`);
-        return target;
+        return null;
       } else {
         ui.notifications.error(`CompendiumCollection is not found`);
 		return null;
@@ -78,6 +78,43 @@ export async function getCompendiumCollectionAsync(target, ignoreError) {
     // Type checking
     if (!(target instanceof CompendiumCollection)) {
         ui.notifications.error(`Invalid CompendiumCollection`);
+		return null;
+    }
+    return target;
+}
+
+export async function getActorAsync(target, ignoreError) {
+    if(!target) {
+		ui.notifications.error(`Actor is undefined`);
+		return null;
+    }
+    if (target instanceof Actor) {
+      return target;
+    }
+    // This is just a patch for compatibility with others modules
+    if (target.document) {
+      target = target.document;
+    }
+    if (target instanceof Actor) {
+      return target;
+    }
+    if (stringIsUuid(target)) {
+      target = await fromUuid(target);
+    } else {
+      target = game.actors.get(target) ?? game.actors.getName(target);
+    }
+    if(!target) {
+      if(ignoreError) {
+		warn(`Actor is not found`);
+        return null;
+      } else {
+        ui.notifications.error(`Actor is not found`);
+		return null;
+      }
+    }
+    // Type checking
+    if (!(target instanceof Actor)) {
+        ui.notifications.error(`Invalid Actor`);
 		return null;
     }
     return target;
