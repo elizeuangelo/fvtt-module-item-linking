@@ -1,14 +1,77 @@
-import { TITLE } from './settings.js';
+import { TITLE, MODULE } from './settings.js';
 
-export const log = (message: string) => {
-	console.log(`%c${TITLE} %c| ${message}`, 'color:orange;font-weight:bold', '');
-};
-export const warn = (message: string) => {
-	console.warn(`%c${TITLE} %c| ${message}`, 'color:orange;font-weight:bold', '');
-};
-export const error = (message: string) => {
-	console.error(`%c${TITLE} %c| ${message}`, 'color:orange;font-weight:bold', '');
-};
+export function debug(msg, ...args) {
+  try {
+    if (
+      game.modules.get("_dev-mode")?.api?.getPackageDebugValue(MODULE, "boolean")
+    ) {
+      console.log(`DEBUG | %c${TITLE}%c | ${msg}`, ...args);
+    }
+  } catch (e) {
+    console.error(e.message);
+  }
+  return msg;
+}
+
+export function log(message, ...args) {
+  try {
+    message = `%c${TITLE}%c | ${message}`;
+    console.log(message.replace("<br>", "\n"), ...args);
+  } catch (e) {
+    console.error(e.message);
+  }
+  return message;
+}
+
+export function notify(message, ...args) {
+  try {
+    message = `%c${TITLE}%c | ${message}`;
+    ui.notifications?.notify(message);
+    console.log(message.replace("<br>", "\n"), ...args);
+  } catch (e) {
+    console.error(e.message);
+  }
+  return message;
+}
+
+export function info(info, notify = false, ...args) {
+  try {
+    info = `%c${TITLE}%c | ${info}`;
+    if (notify) {
+      ui.notifications?.info(info);
+    }
+    console.log(info.replace("<br>", "\n"), ...args);
+  } catch (e) {
+    console.error(e.message);
+  }
+  return info;
+}
+
+export function warn(warning, notify = false, ...args) {
+  try {
+    warning = `%c${TITLE}%c | ${warning}`;
+    if (notify) {
+      ui.notifications?.warn(warning);
+    }
+    console.warn(warning.replace("<br>", "\n"), ...args);
+  } catch (e) {
+    console.error(e.message);
+  }
+  return warning;
+}
+
+export function error(error, notify = true, ...args) {
+  try {
+    error = `%c${TITLE}%c | ${error}`;
+    if (notify) {
+      ui.notifications?.error(error);
+    }
+    console.error(error.replace("<br>", "\n"), ...args);
+  } catch (e) {
+    console.error(e.message);
+  }
+  return new Error(error.replace("<br>", "\n"));
+}
 
 export function deletionKeys(original: Object, other: Object) {
 	// Recursively call the _difference function
@@ -52,76 +115,232 @@ export function parseAsArray(obj) {
 export function stringIsUuid(inId) {
     return typeof inId === "string" && (inId.match(/\./g) || []).length && !inId.endsWith(".");
 }
-export async function getCompendiumCollectionAsync(target, ignoreError) {
-    if(!target) {
-        ui.notifications.error(`CompendiumCollection is undefined`);
-		return null;
-    }
-    if (target instanceof CompendiumCollection) {
-      return target;
-    }
-    // This is just a patch for compatibility with others modules
-    if (target.document) {
-      target = target.document;
-    }
-    if (target instanceof CompendiumCollection) {
-      return target;
-    }
-    if (stringIsUuid(target)) {
-      target = await fromUuid(target);
-    } else {
-      target = game.packs.get(target) ?? game.packs.getName(target);
-    }
-    if(!target) {
-      if(ignoreError) {
-        warn(`CompendiumCollection is not found`);
-        return null;
-      } else {
-        ui.notifications.error(`CompendiumCollection is not found`);
-		return null;
-      }
-    }
-    // Type checking
-    if (!(target instanceof CompendiumCollection)) {
-        ui.notifications.error(`Invalid CompendiumCollection`);
-		return null;
-    }
+export async function getCompendiumCollectionAsync(target, ignoreError = false, ignoreName = true) {
+  if (!target) {
+    throw error(`CompendiumCollection is undefined`, true, target);
+  }
+  if (target instanceof CompendiumCollection) {
     return target;
+  }
+  // This is just a patch for compatibility with others modules
+  if (target.document) {
+    target = target.document;
+  }
+  if (target.uuid) {
+    target = target.uuid;
+  }
+
+  if (target instanceof CompendiumCollection) {
+    return target;
+  }
+  if (stringIsUuid(target)) {
+    target = await fromUuid(target);
+  } else {
+    target = game.packs.get(target);
+    if (!target && !ignoreName) {
+      target = game.packs.getName(target);
+    }
+  }
+  if (!target) {
+    if (ignoreError) {
+      warn(`CompendiumCollection is not found`, false, target);
+      return;
+    } else {
+      throw error(`CompendiumCollection is not found`, true, target);
+    }
+  }
+  // Type checking
+  if (!(target instanceof CompendiumCollection)) {
+    if (ignoreError) {
+      warn(`Invalid CompendiumCollection`, true, target);
+      return;
+    } else {
+      throw error(`Invalid CompendiumCollection`, true, target);
+    }
+  }
+  return target;
 }
 
-export async function getActorAsync(target, ignoreError) {
-    if(!target) {
-		ui.notifications.error(`Actor is undefined`);
-		return null;
-    }
-    if (target instanceof Actor) {
-      return target;
-    }
-    // This is just a patch for compatibility with others modules
-    if (target.document) {
-      target = target.document;
-    }
-    if (target instanceof Actor) {
-      return target;
-    }
-    if (stringIsUuid(target)) {
-      target = await fromUuid(target);
-    } else {
-      target = game.actors.get(target) ?? game.actors.getName(target);
-    }
-    if(!target) {
-      if(ignoreError) {
-		warn(`Actor is not found`);
-        return null;
-      } else {
-        ui.notifications.error(`Actor is not found`);
-		return null;
-      }
-    }
-    // Type checking
-    if (!(target instanceof Actor)) {
-        ui.notifications.error(`Invalid Actor`);
-		return null;
-    }
+export function getActorSync(target, ignoreError = false, ignoreName = true) {
+  if (!target) {
+    throw error(`Actor is undefined`, true, target);
+  }
+  if (target instanceof Actor) {
     return target;
+  }
+  // This is just a patch for compatibility with others modules
+  if (target.document) {
+    target = target.document;
+  }
+  if (target.uuid) {
+    target = target.uuid;
+  }
+
+  if (target instanceof Actor) {
+    return target;
+  }
+  if (stringIsUuid(target)) {
+    target = fromUuidSync(target);
+  } else {
+    target = game.actors.get(target);
+    if (!target && !ignoreName) {
+      target = game.actors.getName(target);
+    }
+  }
+  if (!target) {
+    if (ignoreError) {
+      warn(`Actor is not found`, false, target);
+      return;
+    } else {
+      throw error(`Actor is not found`, true, target);
+    }
+  }
+  // Type checking
+  if (!(target instanceof Actor)) {
+    if (ignoreError) {
+      warn(`Invalid Actor`, true, target);
+      return;
+    } else {
+      throw error(`Invalid Actor`, true, target);
+    }
+  }
+  return target;
+}
+
+export async function getActorAsync(target, ignoreError = false, ignoreName = true) {
+  if (!target) {
+    throw error(`Actor is undefined`, true, target);
+  }
+  if (target instanceof Actor) {
+    return target;
+  }
+  // This is just a patch for compatibility with others modules
+  if (target.document) {
+    target = target.document;
+  }
+  if (target.uuid) {
+    target = target.uuid;
+  }
+
+  if (target instanceof Actor) {
+    return target;
+  }
+  if (stringIsUuid(target)) {
+    target = await fromUuid(target);
+  } else {
+    target = game.actors.get(target);
+    if (!target && !ignoreName) {
+      target = game.actors.getName(target);
+    }
+  }
+  if (!target) {
+    if (ignoreError) {
+      warn(`Actor is not found`, false, target);
+      return;
+    } else {
+      throw error(`Actor is not found`, true, target);
+    }
+  }
+  // Type checking
+  if (!(target instanceof Actor)) {
+    if (ignoreError) {
+      warn(`Invalid Actor`, true, target);
+      return;
+    } else {
+      throw error(`Invalid Actor`, true, target);
+    }
+  }
+  return target;
+}
+
+export function getItemSync(target, ignoreError = false, ignoreName = true) {
+  if (!target) {
+    throw error(`Item is undefined`, true, target);
+  }
+  if (target instanceof Item) {
+    return target;
+  }
+  // This is just a patch for compatibility with others modules
+  if (target.document) {
+    target = target.document;
+  }
+  if (target.uuid) {
+    target = target.uuid;
+  }
+
+  if (target instanceof Item) {
+    return target;
+  }
+  if (stringIsUuid(target)) {
+    target = fromUuidSync(target);
+  } else {
+    target = game.items.get(target);
+    if (!target && !ignoreName) {
+      target = game.items.getName(target);
+    }
+  }
+  if (!target) {
+    if (ignoreError) {
+      warn(`Item is not found`, false, target);
+      return;
+    } else {
+      throw error(`Item is not found`, true, target);
+    }
+  }
+  // Type checking
+  if (!(target instanceof Item)) {
+    if (ignoreError) {
+      warn(`Invalid Item`, true, target);
+      return;
+    } else {
+      throw error(`Invalid Item`, true, target);
+    }
+  }
+  return target;
+}
+
+export async function getItemAsync(target, ignoreError = false, ignoreName = true) {
+  if (!target) {
+    throw error(`Item is undefined`, true, target);
+  }
+  if (target instanceof Item) {
+    return target;
+  }
+  // This is just a patch for compatibility with others modules
+  if (target.document) {
+    target = target.document;
+  }
+  if (target.uuid) {
+    target = target.uuid;
+  }
+
+  if (target instanceof Item) {
+    return target;
+  }
+  if (stringIsUuid(target)) {
+    target = await fromUuid(target);
+  } else {
+    target = game.items.get(target);
+    if (!target && !ignoreName) {
+      target = game.items.getName(target);
+    }
+  }
+  if (!target) {
+    if (ignoreError) {
+      warn(`Item is not found`, false, target);
+      return;
+    } else {
+      throw error(`Item is not found`, true, target);
+    }
+  }
+  // Type checking
+  if (!(target instanceof Item)) {
+    if (ignoreError) {
+      warn(`Invalid Item`, true, target);
+      return;
+    } else {
+      throw error(`Invalid Item`, true, target);
+    }
+  }
+  return target;
 }

@@ -1,7 +1,89 @@
 import { MODULE } from "./settings.js";
-import { getActorAsync, getCompendiumCollectionAsync, parseAsArray, warn } from "./utils.js";
+import { getItemAsync, getActorAsync, getCompendiumCollectionAsync, parseAsArray, warn } from "./utils.js";
 
 const API = {
+
+  /**
+   * Method for check if the item is linked
+   * @param {Item} itemToCheck the item to check
+   * @returns {boolean} if is linked or no
+   */
+  isItemLinked(itemToCheck) {
+    const isLinked = itemToCheck.getFlag("item-linking", "baseItem");
+    if (isLinked) {
+      return true;
+    }
+    return false;
+  },
+
+  /**
+   * Method for retrieve the linked item if present
+   * @param {Item} itemToCheck the item to check
+   * @returns {Item|null} the item linked
+   */
+  retrieveLinkedItem(itemToCheck) {
+    if (!this.isItemLinked(itemToCheck)) {
+      warn(`The item ${itemToCheck.name}|${itemToCheck.uuid} is not linked`);
+      return;
+    }
+    const baseItemUuid = itemToCheck.getFlag("item-linking", "baseItem");
+    if (!baseItemUuid) {
+      warn(`No baseItemUuid is been found for ${itemToCheck.name}|${itemToCheck.uuid}`);
+      return;
+    }
+    const baseItem = fromUuidSync(baseItemUuid);
+    if (!baseItem) {
+      warn(`No baseItem is been found for ${itemToCheck.name}|${itemToCheck.uuid}`);
+      return;
+    }
+    return baseItem;
+  },
+
+  /**
+   * Method for set a linked item to another item
+   * @param {string|Item} itemToCheck the item to check
+   * @param {string|item} itemBaseReference 
+   * @returns 
+   */
+  async setLinkedItem(itemToCheck, itemBaseReference) {
+    if (!itemBaseReference) {
+      warn(`The 'baseItemReference' is null or empty`);
+      return;
+    }
+
+    itemToCheck = await getItemAsync(itemToCheck);
+    if (this.isItemLinked(itemToCheck)) {
+      return itemToCheck;
+    }
+
+    const baseItem = await getItemAsync(itemBaseReference);
+    const uuidToSet =
+      this.retrieveLinkedItem(baseItem)?.uuid ??
+      getProperty(baseItem, `flags.core.sourceId`) ??
+      baseItem.uuid;
+
+    if (!uuidToSet) {
+      warn(`The 'uuidToSet' is null or empty`);
+      return;
+    }
+
+    const baseItemUuid = itemToCheck.getFlag("item-linking", "baseItem");
+    if (baseItemUuid) {
+      warn(`No baseItemUuid is been found for ${itemToCheck.name}|${itemToCheck.uuid}`);
+      return;
+    }
+    // itemToCheck = await itemToCheck.update({
+    //   flags: {
+    //     "item-linking": {
+    //       baseItem: uuidToSet,
+    //       isLinked: true,
+    //     },
+    //   },
+    // });
+    await itemToCheck.setFlag("item-linking", "baseItem", uuidToSet);
+    await itemToCheck.setFlag("item-linking", "isLinked", true);
+    return itemToCheck;
+  },
 
   /**
    * A "Save Time" method for attempting to link through certain filters 
