@@ -76,7 +76,7 @@ const API = {
    * Method for set a linked item to another item
    * @param {string|Item} itemToCheck the item to check
    * @param {string|item} itemBaseReference 
-   * @returns 
+   * @returns {Promise<Void>}
    */
   async setLinkedItem(itemToCheck, itemBaseReference) {
     if (!itemBaseReference) {
@@ -116,6 +116,42 @@ const API = {
     await itemToCheckTmp.setFlag("item-linking", "baseItem", uuidToSet);
     await itemToCheckTmp.setFlag("item-linking", "isLinked", true);
     return itemToCheckTmp;
+  },
+
+  /**
+   * Method to update a item on a actor with the linked item
+   * @param {string|Item} itemToCheck the item to check
+   * @param {boolean=false} force should the original item deleted from the actor ?
+   * @returns {Promise<Void>}
+   */
+  async replaceItemWithLinkedItemOnActor(itemToCheck, force = false) {
+    let itemToCheck = await getItemAsync(itemToCheck);
+    // Replace only if there is a base item
+    if (this.isItemLinked(itemToCheck)) {
+      const toReplace = await getItemAsync(itemToCheck.uuid);
+      const itemLinked = this.retrieveLinkedItem(itemToCheck);
+      const obj = item.toObject();
+      obj.flags["item-linking"] = {
+        isLinked: true,
+        baseItem: itemLinked,
+      };
+
+      const owner = toReplace.actor;
+      if (!owner) {
+        throw error(`The item '${itemToCheck}' is not on a actor`);
+      }
+      if (force) {
+        await toReplace.delete();
+      } else {
+        const conf = await toReplace.deleteDialog();
+        if (!conf) {
+          return false;
+        }
+      }
+      return await owner.createEmbeddedDocuments("Item", [obj]);
+    } else {
+      warn(`The item '${itemToCheck?.name}' is already linked`);
+    }
   },
 
   /**
