@@ -1,16 +1,48 @@
 import { MODULE } from "./settings.js";
-import { getItemAsync, getActorAsync, getCompendiumCollectionAsync, parseAsArray, warn } from "./utils.js";
+import { getItemAsync, getActorAsync, getCompendiumCollectionAsync, parseAsArray, warn, getItemSync } from "./utils.js";
 
 const API = {
 
   /**
    * Method for check if the item is linked
-   * @param {Item} itemToCheck the item to check
+   * @param {string|Item} itemToCheck the item to check
    * @returns {boolean} if is linked or no
    */
   isItemLinked(itemToCheck) {
-    const isLinked = itemToCheck.getFlag("item-linking", "baseItem");
-    if (isLinked) {
+    const itemToCheckTmp = getItemSync(itemToCheck);
+    const hasBaseItem = getProperty(itemToCheckTmp,`flags.item-linking.baseItem`);
+    const isLinked = getProperty(itemToCheckTmp,`flags.item-linking.isLinked`);
+    if (hasBaseItem && isLinked) {
+      return true;
+    }
+    return false;
+  },
+
+  /**
+   * Method for check if the item has a broken link
+   * @param {string|Item} itemToCheck the item to check
+   * @returns {boolean} if is linked or no
+   */
+  isItemBrokenLink(itemToCheck) {
+    const itemToCheckTmp = getItemSync(itemToCheck);
+    const hasBaseItem = getProperty(itemToCheckTmp,`flags.item-linking.baseItem`);
+    const isLinked = getProperty(itemToCheckTmp,`flags.item-linking.isLinked`);
+    if (!hasBaseItem && isLinked) {
+      return true;
+    }
+    return false;
+  },
+
+  /**
+   * Method for check if the item is not linked
+   * @param {string|Item} itemToCheck the item to check
+   * @returns {boolean} if is linked or no
+   */
+  isItemUnlinked(itemToCheck) {
+    const itemToCheckTmp = getItemSync(itemToCheck);
+    const hasBaseItem = getProperty(itemToCheckTmp,`flags.item-linking.baseItem`);
+    const isLinked = getProperty(itemToCheckTmp,`flags.item-linking.isLinked`);
+    if (!hasBaseItem && !isLinked) {
       return true;
     }
     return false;
@@ -18,22 +50,23 @@ const API = {
 
   /**
    * Method for retrieve the linked item if present
-   * @param {Item} itemToCheck the item to check
+   * @param {string|Item} itemToCheck the item to check
    * @returns {Item|null} the item linked
    */
   retrieveLinkedItem(itemToCheck) {
-    if (!this.isItemLinked(itemToCheck)) {
-      warn(`The item ${itemToCheck.name}|${itemToCheck.uuid} is not linked`);
+    const itemToCheckTmp = getItemSync(itemToCheck);
+    if (!this.isItemLinked(itemToCheckTmp)) {
+      warn(`The item ${itemToCheckTmp.name}|${itemToCheckTmp.uuid} is not linked`);
       return;
     }
-    const baseItemUuid = itemToCheck.getFlag("item-linking", "baseItem");
+    const baseItemUuid =  getProperty(itemToCheckTmp,`flags.item-linking.baseItem`);
     if (!baseItemUuid) {
-      warn(`No baseItemUuid is been found for ${itemToCheck.name}|${itemToCheck.uuid}`);
+      warn(`No baseItemUuid is been found for ${itemToCheckTmp.name}|${itemToCheckTmp.uuid}`);
       return;
     }
     const baseItem = fromUuidSync(baseItemUuid);
     if (!baseItem) {
-      warn(`No baseItem is been found for ${itemToCheck.name}|${itemToCheck.uuid}`);
+      warn(`No baseItem is been found for ${itemToCheckTmp.name}|${itemToCheckTmp.uuid}`);
       return;
     }
     return baseItem;
@@ -51,9 +84,9 @@ const API = {
       return;
     }
 
-    itemToCheck = await getItemAsync(itemToCheck);
-    if (this.isItemLinked(itemToCheck)) {
-      return itemToCheck;
+    let itemToCheckTmp = await getItemAsync(itemToCheck);
+    if (this.isItemLinked(itemToCheckTmp)) {
+      return itemToCheckTmp;
     }
 
     const baseItem = await getItemAsync(itemBaseReference);
@@ -67,9 +100,9 @@ const API = {
       return;
     }
 
-    const baseItemUuid = itemToCheck.getFlag("item-linking", "baseItem");
+    const baseItemUuid =  getProperty(itemToCheckTmp,`flags.item-linking.baseItem`);
     if (baseItemUuid) {
-      warn(`No baseItemUuid is been found for ${itemToCheck.name}|${itemToCheck.uuid}`);
+      warn(`No baseItemUuid is been found for ${itemToCheckTmp.name}|${itemToCheckTmp.uuid}`);
       return;
     }
     // itemToCheck = await itemToCheck.update({
@@ -80,9 +113,9 @@ const API = {
     //     },
     //   },
     // });
-    await itemToCheck.setFlag("item-linking", "baseItem", uuidToSet);
-    await itemToCheck.setFlag("item-linking", "isLinked", true);
-    return itemToCheck;
+    await itemToCheckTmp.setFlag("item-linking", "baseItem", uuidToSet);
+    await itemToCheckTmp.setFlag("item-linking", "isLinked", true);
+    return itemToCheckTmp;
   },
 
   /**
@@ -201,10 +234,10 @@ const API = {
       if (!typesToFilter.includes(itemTryToLink.type)) {
         continue;
       }
-      const alreadyLinked = itemTryToLink.getFlag('item-linking', 'isLinked');
+      const alreadyLinked = getProperty(itemTryToLink,`flags.item-linking.isLinked`);
       if (alreadyLinked) {
         documentsAlreadyLinked++;
-        const broken_link = !Boolean(await fromUuid(itemTryToLink.getFlag('item-linking', 'baseItem')));
+        const broken_link = !Boolean(await fromUuid(getProperty(itemTryToLink,`flags.item-linking.baseItem`)));
         if (broken_link) {
           documentsBroken++;
         } else continue;
