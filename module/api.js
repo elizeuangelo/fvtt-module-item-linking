@@ -278,32 +278,6 @@ const API = {
         permanent: true,
       });
     }
-  },
-
-  isItemLinked(itemToCheck) {
-    const isLinked = itemToCheck.getFlag("item-linking", "baseItem");
-    if (isLinked) {
-      return true;
-    }
-    return false;
-  },
-
-  retrieveLinkedItem(itemToCheck) {
-    if (!this.isItemLinked(itemToCheck)) {
-      warn(`The item ${itemToCheck.name}|${itemToCheck.uuid} is not linked`);
-      return null;
-    }
-    const baseItemUuid = itemToCheck.getFlag("item-linking", "baseItem");
-    if (!baseItemUuid) {
-      warn(`No baseItemUuid is been found for ${itemToCheck.name}|${itemToCheck.uuid}`);
-      return null;
-    }
-    const baseItem = fromUuidSync(baseItemUuid);
-    if (!baseItem) {
-      warn(`No baseItem is been found for ${itemToCheck.name}|${itemToCheck.uuid}`);
-      return null;
-    }
-    return baseItem;
   }
 };
 
