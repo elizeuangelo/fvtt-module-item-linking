@@ -280,40 +280,6 @@ const API = {
         permanent: true,
       });
     }
-  },
-
-  /**
-   * @param {Item} itemToCheck Item to check
-   * @returns {boolean} if the item linked ?
-   */
-  isItemLinked(itemToCheck) {
-    const isLinked = itemToCheck.getFlag("item-linking", "baseItem");
-    if (isLinked) {
-      return true;
-    }
-    return false;
-  },
-
-  /**
-   * @param {Item} itemToCheck Item to check
-   * @returns {Item} The base linked item
-   */
-  retrieveLinkedItem(itemToCheck) {
-    if (!this.isItemLinked(itemToCheck)) {
-      warn(`The item ${itemToCheck.name}|${itemToCheck.uuid} is not linked`);
-      return null;
-    }
-    const baseItemUuid = itemToCheck.getFlag("item-linking", "baseItem");
-    if (!baseItemUuid) {
-      warn(`No baseItemUuid is been found for ${itemToCheck.name}|${itemToCheck.uuid}`);
-      return null;
-    }
-    const baseItem = fromUuidSync(baseItemUuid);
-    if (!baseItem) {
-      warn(`No baseItem is been found for ${itemToCheck.name}|${itemToCheck.uuid}`);
-      return null;
-    }
-    return baseItem;
   }
 };
 
