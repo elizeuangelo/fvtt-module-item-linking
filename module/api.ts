@@ -4,6 +4,20 @@ import { getItemAsync, getActorAsync, getCompendiumCollectionAsync, parseAsArray
 const API = {
 
   /**
+   * Method for check if the item is not linked
+   * @param {string|Item} itemToCheck the item to check
+   * @returns {boolean} if is linked or no
+   */
+  isItemNotLinked(itemToCheck) {
+    const itemToCheckTmp = getItemSync(itemToCheck);
+    const isLinked = getProperty(itemToCheckTmp, `flags.item-linking.isLinked`);
+    if (!isLinked) {
+      return true;
+    }
+    return false;
+  },
+
+  /**
    * Method for check if the item is linked
    * @param {string|Item} itemToCheck the item to check
    * @returns {boolean} if is linked or no
