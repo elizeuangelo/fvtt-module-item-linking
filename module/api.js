@@ -1,5 +1,5 @@
 import { MODULE } from "./settings.js";
-import { getItemAsync, getActorAsync, getCompendiumCollectionAsync, parseAsArray, warn, getItemSync } from "./utils.js";
+import { getItemAsync, getActorAsync, getCompendiumCollectionAsync, parseAsArray, warn, error, getItemSync } from "./utils.js";
 
 const API = {
 
@@ -134,16 +134,16 @@ const API = {
 
   /**
    * Method to update a item on a actor with the linked item
-   * @param {string|Item} itemToCheck the item to check
+   * @param {string|Item} itemToCheckTmp the item to check
    * @param {boolean=false} force should the original item deleted from the actor ?
    * @returns {Promise<Void>}
    */
   async replaceItemWithLinkedItemOnActor(itemToCheck, force = false) {
-    itemToCheck = await getItemAsync(itemToCheck);
+    let itemToCheckTmp = await getItemAsync(itemToCheck);
     // Replace only if there is a base item
-    if (this.isItemLinked(itemToCheck)) {
-      const toReplace = await getItemAsync(itemToCheck.uuid);
-      const itemLinked = this.retrieveLinkedItem(itemToCheck);
+    if (this.isItemLinked(itemToCheckTmp)) {
+      const toReplace = await getItemAsync(itemToCheckTmp.uuid);
+      const itemLinked = this.retrieveLinkedItem(itemToCheckTmp);
       const obj = item.toObject();
       obj.flags["item-linking"] = {
         isLinked: true,
@@ -152,7 +152,7 @@ const API = {
 
       const owner = toReplace.actor;
       if (!owner) {
-        throw error(`The item '${itemToCheck}' is not on a actor`);
+        throw error(`The item '${itemToCheckTmp}' is not on a actor`);
       }
       if (force) {
         await toReplace.delete();
@@ -164,7 +164,7 @@ const API = {
       }
       return await owner.createEmbeddedDocuments("Item", [obj]);
     } else {
-      warn(`The item '${itemToCheck?.name}' is already linked`);
+      warn(`The item '${itemToCheckTmp?.name}' is already linked`);
     }
   },
 
