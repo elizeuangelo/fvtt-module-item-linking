@@ -139,7 +139,7 @@ const API = {
    * @returns {Promise<Void>}
    */
   async replaceItemWithLinkedItemOnActor(itemToCheck, force = false) {
-    let itemToCheck = await getItemAsync(itemToCheck);
+    itemToCheck = await getItemAsync(itemToCheck);
     // Replace only if there is a base item
     if (this.isItemLinked(itemToCheck)) {
       const toReplace = await getItemAsync(itemToCheck.uuid);
