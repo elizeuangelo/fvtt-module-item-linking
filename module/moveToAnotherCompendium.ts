@@ -145,6 +145,7 @@ async function moveFolder(
 	// Transform Folder and Subfolder to Items
 	function transformItemDataToItem(folder: Folder) {
 		folder.contents = folder.contents.map((data) => new Item(data as any));
+		//@ts-ignore
 		return [...folder.contents, ...folder.children.flatMap((child) => transformItemDataToItem(child.folder))];
 	}
 
@@ -164,6 +165,7 @@ async function moveFolder(
 
 	// Create Folder inside Target Pack
 	const targetFolder = (await Folder.create(
+		//@ts-ignore
 		{ name: folder.name, folder: destination.folder, type: 'Item' },
 		{ pack: targetPack.collection }
 	))!;
