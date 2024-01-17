@@ -1,6 +1,6 @@
 import { findDerived } from './item.js';
 import { findItems } from './findItems.js';
-import { moveToAnotherCompendium } from './moveToAnotherCompendium.js';
+import { moveFolderToAnotherCompendium, moveToAnotherCompendium } from './moveToAnotherCompendium.js';
 
 function renderCompendium(pack: CompendiumCollection<CompendiumCollection.Metadata>, html: JQuery) {
 	const freq = findDerived();
@@ -24,7 +24,7 @@ interface entryOption {
 	callback: (li: JQuery<HTMLLIElement>) => any;
 }
 
-export default function contextMenu(html: JQuery, entryOptions: entryOption[]) {
+function entryContextMenu(html: JQuery, entryOptions: entryOption[]) {
 	entryOptions.push(
 		{
 			name: 'Find Items',
@@ -53,6 +53,15 @@ export default function contextMenu(html: JQuery, entryOptions: entryOption[]) {
 	);
 }
 
+function sidebarTabFolderContextMenu(html: JQuery, entryOptions: entryOption[]) {
+	entryOptions.push({
+		name: 'Move Folder to Another Compendium',
+		icon: '<i class="fas fa-truck"></i>',
+		callback: (li) => moveFolderToAnotherCompendium(li, html),
+	});
+}
+
 /** -------------------------------------------- */
 Hooks.on('renderCompendium', renderCompendium);
-Hooks.on('getCompendiumEntryContext', contextMenu);
+Hooks.on('getCompendiumEntryContext', entryContextMenu);
+Hooks.on('getSidebarTabFolderContext', sidebarTabFolderContextMenu);
