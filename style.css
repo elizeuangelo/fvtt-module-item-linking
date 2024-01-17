@@ -1,29 +1,35 @@
 .dnd5e.sheet .sheet-header .link {
-    align-items: center;
+	align-items: center;
 }
 
 .tidy5e.sheet .sheet-header .link * {
-    max-height: 20px;
+	max-height: 20px;
 }
 
-.tidy5e.sheet.item .sheet-body .tab.item-betterRolls .form-group input:checked:disabled, .tidy5e.sheet.item .sheet-body .tab.details .form-group input:checked:disabled, .tidy5e.sheet.item .sheet-body .tab.advancement .form-group input:checked:disabled, .tidy5e.sheet.item .sheet-body .tab.dynamiceffects .form-group input:checked:disabled, .tidy5e.sheet.item .sheet-body .tab.magic-items .form-group input:checked:disabled {
-    background: var(--t5e-secondary-color);
-    color: var(--t5e-secondary-color);
+.tidy5e.sheet.item .sheet-body .tab.item-betterRolls .form-group input:checked:disabled,
+.tidy5e.sheet.item .sheet-body .tab.details .form-group input:checked:disabled,
+.tidy5e.sheet.item .sheet-body .tab.advancement .form-group input:checked:disabled,
+.tidy5e.sheet.item .sheet-body .tab.dynamiceffects .form-group input:checked:disabled,
+.tidy5e.sheet.item .sheet-body .tab.magic-items .form-group input:checked:disabled {
+	background: var(--t5e-secondary-color);
+	color: var(--t5e-secondary-color);
 }
 
 .link-derivations {
-    position: relative;
-    flex: 0;
-    line-height: normal;
-    margin-right: 8px;
-    height: fit-content;
-    flex-basis: fit-content;
-    text-align: center;
-    align-self: center;
-    color: red;
-    border: 1px solid red;
-    border-radius: 50%;
-    padding: 4px;
+	position: relative;
+	flex: 0;
+	line-height: normal;
+	margin-right: 8px;
+	height: fit-content;
+	flex-basis: fit-content;
+	text-align: center;
+	align-self: center;
+	color: red;
+	padding: 4px;
+	background: black;
+	font-size: 1.2em;
+	border-radius: 10px;
+	filter: drop-shadow(2px 4px 6px black);
 }
 
 /*.dnd5e.sheet .sheet-header .summary a.item-link {
