@@ -204,7 +204,7 @@ async function moveFolder(
 }
 
 export async function moveFolderToAnotherCompendium(
-	li: JQuery<HTMLElement>,
+	header: JQuery<HTMLElement>,
 	html: JQuery<HTMLElement>,
 	options: {
 		pack?: CompendiumCollection<CompendiumCollection.Metadata>;
@@ -241,7 +241,7 @@ export async function moveFolderToAnotherCompendium(
 	}
 
 	const pack = game.packs.get(html.data().pack)!;
-	const folder = (await pack.folders.get(li[0].parentElement!.dataset.folderId!)) as Folder;
+	const folder = (await pack.folders.get(header[0].parentElement!.dataset.folderId!)) as Folder;
 
 	// Get eligible pack destinations
 	const packs = game.packs.filter((p) => p.documentName === 'Item' && !p.locked && p !== pack);

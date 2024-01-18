@@ -39,7 +39,11 @@ function sidebarTabFolderContextMenu(html, entryOptions) {
     entryOptions.push({
         name: 'Move Folder to Another Compendium',
         icon: '<i class="fas fa-truck"></i>',
-        callback: (li) => moveFolderToAnotherCompendium(li, html),
+        callback: (header) => moveFolderToAnotherCompendium(header, html),
+        condition: (header) => {
+            const uuid = header[0].parentElement.dataset.uuid;
+            return Boolean(uuid) && uuid.startsWith('Compendium.');
+        },
     });
 }
 Hooks.on('renderCompendium', renderCompendium);

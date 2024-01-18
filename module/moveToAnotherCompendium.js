@@ -130,7 +130,7 @@ async function moveFolder(folder, destination) {
     ui.notifications.info(`Folder ${folder.name} moved to ${destination.pack}`);
     return true;
 }
-export async function moveFolderToAnotherCompendium(li, html, options = {}) {
+export async function moveFolderToAnotherCompendium(header, html, options = {}) {
     function addListeners(html) {
         html.find('select[name="pack"]')[0].addEventListener('change', (event) => _onPackChange(event, html));
     }
@@ -152,7 +152,7 @@ export async function moveFolderToAnotherCompendium(li, html, options = {}) {
         });
     }
     const pack = game.packs.get(html.data().pack);
-    const folder = (await pack.folders.get(li[0].parentElement.dataset.folderId));
+    const folder = (await pack.folders.get(header[0].parentElement.dataset.folderId));
     const packs = game.packs.filter((p) => p.documentName === 'Item' && !p.locked && p !== pack);
     if (!packs.length) {
         return ui.notifications.warn(game.i18n.format('FOLDER.ExportWarningNone', { type: this.type }));
