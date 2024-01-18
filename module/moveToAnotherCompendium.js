@@ -102,7 +102,7 @@ async function moveFolder(folder, destination) {
     const derivationsMap = new Map(items.map((item) => [item, freq[folder.compendium.getUuid(item.id)] ?? []]));
     const steps = derivationsMap.size + 2;
     let step = 1;
-    const updateStep = () => SceneNavigation.displayProgressBar({ label, pct: (100 * step++) / steps });
+    const updateStep = (customLabel) => SceneNavigation.displayProgressBar({ label: customLabel ?? label, pct: (100 * step++) / steps });
     const targetPack = game.packs.get(destination.pack);
     const targetFolder = (await Folder.create({ name: folder.name, folder: destination.folder, type: 'Item' }, { pack: targetPack.collection }));
     await folder.exportToCompendium(targetPack, {
@@ -113,10 +113,8 @@ async function moveFolder(folder, destination) {
     try {
         if (destination.relink && derivationsMap.size) {
             for (const [key, derivations] of derivationsMap.entries()) {
-                for (const derivation of derivations) {
-                    setFlag(derivation, 'baseItem', `Compendium.${targetPack.metadata.id}.Item.${key.id}`);
-                }
-                updateStep();
+                await Promise.all(derivations.map((derivation) => setFlag(derivation, 'baseItem', `Compendium.${targetPack.metadata.id}.Item.${key.id}`)));
+                updateStep(`Updated derivation links from ${key.name}`);
             }
         }
         ui.notifications.info(`Folder ${folder.name} derivations updated`);

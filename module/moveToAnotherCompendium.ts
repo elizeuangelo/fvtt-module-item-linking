@@ -163,7 +163,8 @@ async function moveFolder(
 
 	const steps = derivationsMap.size + 2;
 	let step = 1;
-	const updateStep = () => SceneNavigation.displayProgressBar({ label, pct: (100 * step++) / steps });
+	const updateStep = (customLabel?: string) =>
+		SceneNavigation.displayProgressBar({ label: customLabel ?? label, pct: (100 * step++) / steps });
 
 	const targetPack = game.packs.get(destination.pack)!;
 
@@ -185,10 +186,12 @@ async function moveFolder(
 	try {
 		if (destination.relink && derivationsMap.size) {
 			for (const [key, derivations] of derivationsMap.entries()) {
-				for (const derivation of derivations) {
-					setFlag(derivation, 'baseItem', `Compendium.${targetPack.metadata.id}.Item.${key.id}`);
-				}
-				updateStep();
+				await Promise.all(
+					derivations.map((derivation) =>
+						setFlag(derivation, 'baseItem', `Compendium.${targetPack.metadata.id}.Item.${key.id}`)
+					)
+				);
+				updateStep(`Updated derivation links from ${key.name}`);
 			}
 		}
 		ui.notifications.info(`Folder ${folder.name} derivations updated`);
