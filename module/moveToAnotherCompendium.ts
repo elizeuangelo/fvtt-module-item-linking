@@ -143,13 +143,17 @@ async function moveFolder(
 	} & Folder.ExportToCompendiumOptions
 ) {
 	// Transform Folder and Subfolder to Items
-	function transformItemDataToItem(folder: Folder) {
-		folder.contents = folder.contents.map((data) => new Item(data as any));
+	async function transformItemDataToItem(folder: Folder) {
+		folder.contents = await folder.compendium.getDocuments({ folder: folder.id });
+		const items = folder.contents;
 		//@ts-ignore
-		return [...folder.contents, ...folder.children.flatMap((child) => transformItemDataToItem(child.folder))];
+		for (const child of folder.children) {
+			items.push(...(await transformItemDataToItem(child.folder)));
+		}
+		return items;
 	}
 
-	const items = transformItemDataToItem(folder);
+	const items = await transformItemDataToItem(folder);
 
 	const label = `Moving ${folder.name}...`;
 	SceneNavigation.displayProgressBar({ label, pct: 0 });

@@ -87,11 +87,15 @@ export async function moveToAnotherCompendium(li, html, options = {}) {
     });
 }
 async function moveFolder(folder, destination) {
-    function transformItemDataToItem(folder) {
-        folder.contents = folder.contents.map((data) => new Item(data));
-        return [...folder.contents, ...folder.children.flatMap((child) => transformItemDataToItem(child.folder))];
+    async function transformItemDataToItem(folder) {
+        folder.contents = await folder.compendium.getDocuments({ folder: folder.id });
+        const items = folder.contents;
+        for (const child of folder.children) {
+            items.push(...(await transformItemDataToItem(child.folder)));
+        }
+        return items;
     }
-    const items = transformItemDataToItem(folder);
+    const items = await transformItemDataToItem(folder);
     const label = `Moving ${folder.name}...`;
     SceneNavigation.displayProgressBar({ label, pct: 0 });
     const freq = findDerived();

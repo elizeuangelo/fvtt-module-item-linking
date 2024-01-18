@@ -8,9 +8,8 @@ import('./module/compendium.js');
 import('./module/actor.js');
 Hooks.once('setup', () => {
     import('./module/embedded.js');
-    // Set api
-	const data = game.modules.get(MODULE);
-	data.api = API;
+    const data = game.modules.get(MODULE);
+    data.api = API;
 });
 Hooks.once('ready', async () => {
     log('Successfully Initialized');
