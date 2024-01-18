@@ -22,3 +22,29 @@ Compendium items become **Templates** and items can now be linked to them.
 
 This module was comissioned for their _Westmeath_ server as they are trying to create an MMO variant of DnD 5e.
 You can help them comissioning more MODs: https://ko-fi.com/thecrackedrealms
+
+## API
+
+TODO DOCUMENTATION
+
+```javascript
+
+const actor = ...; // actor to update
+const compendiumsFolderToCheck = ['My Compendium Folder Name'] // array of folder names on the compendiums directory
+game.modules.get('item-linking').api.tryToUpdateActorWithLinkedDocumentsFromCompendiumFolder(actor, compendiumsFolderToCheck, {
+	onlyItems: true,
+	typesToFilter: ['weapon', 'equipment', 'consumable', 'tool', 'loot', 'spell', 'backpack', 'feat'],
+	compendiumForNoMatch: 'Miscellaneous'
+});
+```
+
+```javascript
+
+const actor = ...; // actor to update
+const compendiumsToCheck = ...; // array of compendium collection
+game.modules.get('item-linking').api.tryToUpdateActorWithLinkedDocumentsFromCompendiums(actor, compendiumsToCheck, {
+	onlyItems: true,
+	typesToFilter: ['weapon', 'equipment', 'consumable', 'tool', 'loot', 'spell', 'backpack', 'feat'],
+	compendiumForNoMatch: 'Miscellaneous'
+});
+```
