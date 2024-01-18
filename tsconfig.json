@@ -5,7 +5,6 @@
 		"target": "ES2022",
 		"module": "ES2022",
 		//"strict": true,
-		"skipLibCheck": true,
 		"strictNullChecks": true,
 		"alwaysStrict": true,
 		"removeComments": true,

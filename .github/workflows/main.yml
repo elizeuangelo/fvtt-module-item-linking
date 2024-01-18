@@ -29,10 +29,6 @@ jobs:
               env:
                   version: ${{ steps.get_version.outputs.VERSION_NUMBER }}
 
-            # Compile TypeScript files
-            - name: Compile TypeScript
-              run: tsc
-
             # Zip Files
             - name: Zip files
               run: zip -r item-linking * -x ".github/*" "assets/*" "*.ts" "README.md" "LICENSE" "tsconfig.json"
