@@ -9,8 +9,8 @@
 			"discord": "Magus#9576"
 		}
 	],
-	"esmodules": ["./main.js"],
-	"styles": ["./style.css"],
+	"esmodules": ["module.js"],
+	"styles": ["styles/item-linking.css"],
 	"compatibility": {
 		"minimum": 11,
 		"verified": "11.306"
