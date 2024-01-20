@@ -2,7 +2,7 @@ import { applyFixes, checkFixes } from './fixes/fixes.js';
 import API from './module/api.js';
 import { findDerived } from './module/item.js';
 import { MODULE, getSetting } from './module/settings.js';
-import { log } from './module/utils.js';
+import Logger from './module/lib/Logger.js';
 import('./module/flags.js');
 import('./module/compendium.js');
 import('./module/actor.js');
@@ -12,12 +12,12 @@ Hooks.once('setup', () => {
     data.api = API;
 });
 Hooks.once('ready', async () => {
-    log('Successfully Initialized');
+    Logger.log('Successfully Initialized');
     if (checkFixes()) {
         log(`Applying fixes since ${getSetting('update')}...`);
         await applyFixes();
         log(`All fixes applied`);
     }
     const derivations = findDerived();
-    log(`${Object.keys(derivations).length} data links derived`);
+    Logger.log(`${Object.keys(derivations).length} data links derived`);
 });

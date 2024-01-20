@@ -1,4 +1,4 @@
-import CONSTANTS from "../constants/constants";
+import { MODULE } from "../settings.js";
 
 // ================================
 // Logger utility
@@ -6,8 +6,8 @@ import CONSTANTS from "../constants/constants";
 export default class Logger {
   static get DEBUG() {
     return (
-      game.settings.get(CONSTANTS.MODULE_ID, "debug") ||
-      game.modules.get("_dev-mode")?.api?.getPackageDebugValue(CONSTANTS.MODULE_ID, "boolean")
+      game.settings.get(MODULE, "debug") ||
+      game.modules.get("_dev-mode")?.api?.getPackageDebugValue(MODULE, "boolean")
     );
   }
   // export let debugEnabled = 0;
@@ -16,10 +16,10 @@ export default class Logger {
   static debug(msg, ...args) {
     try {
       if (
-        game.settings.get(CONSTANTS.MODULE_ID, "debug") ||
-        game.modules.get("_dev-mode")?.api?.getPackageDebugValue(CONSTANTS.MODULE_ID, "boolean")
+        game.settings.get(MODULE, "debug") ||
+        game.modules.get("_dev-mode")?.api?.getPackageDebugValue(MODULE, "boolean")
       ) {
-        console.log(`DEBUG | ${CONSTANTS.MODULE_ID} | ${msg}`, ...args);
+        console.log(`DEBUG | ${MODULE} | ${msg}`, ...args);
       }
     } catch (e) {
       console.error(e.message);
@@ -33,7 +33,7 @@ export default class Logger {
 
   static log(message, ...args) {
     try {
-      message = `${CONSTANTS.MODULE_ID} | ${message}`;
+      message = `${MODULE} | ${message}`;
       console.log(message.replace("<br>", "\n"), ...args);
     } catch (e) {
       console.error(e.message);
@@ -43,7 +43,7 @@ export default class Logger {
 
   static notify(message, ...args) {
     try {
-      message = `${CONSTANTS.MODULE_ID} | ${message}`;
+      message = `${MODULE} | ${message}`;
       ui.notifications?.notify(message);
       console.log(message.replace("<br>", "\n"), ...args);
     } catch (e) {
@@ -54,7 +54,7 @@ export default class Logger {
 
   static info(info, notify = false, ...args) {
     try {
-      info = `${CONSTANTS.MODULE_ID} | ${info}`;
+      info = `${MODULE} | ${info}`;
       if (notify) {
         ui.notifications?.info(info);
       }
@@ -67,7 +67,7 @@ export default class Logger {
 
   static warn(warning, notify = false, ...args) {
     try {
-      warning = `${CONSTANTS.MODULE_ID} | ${warning}`;
+      warning = `${MODULE} | ${warning}`;
       if (notify) {
         ui.notifications?.warn(warning);
       }
@@ -84,7 +84,7 @@ export default class Logger {
 
   static error(error, notify = true, ...args) {
     try {
-      error = `${CONSTANTS.MODULE_ID} | ${error}`;
+      error = `${MODULE} | ${error}`;
       if (notify) {
         ui.notifications?.error(error);
       }
@@ -114,9 +114,9 @@ export default class Logger {
   // };
 
   static dialogWarning(message, icon = "fas fa-exclamation-triangle") {
-    return `<p class="${CONSTANTS.MODULE_ID}-dialog">
+    return `<p class="${MODULE}-dialog">
         <i style="font-size:3rem;" class="${icon}"></i><br><br>
-        <strong style="font-size:1.2rem;">${CONSTANTS.MODULE_ID}</strong>
+        <strong style="font-size:1.2rem;">${MODULE}</strong>
         <br><br>${message}
     </p>`;
   }
