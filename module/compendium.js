@@ -1,4 +1,6 @@
 import { findDerived } from './item.js';
+import { findItems } from './findItems.js';
+import { moveFolderToAnotherCompendium, moveToAnotherCompendium } from './moveToAnotherCompendium.js';
 function renderCompendium(pack, html) {
     const freq = findDerived();
     [...html.find('ol.directory-list li')].forEach((li) => {
@@ -8,8 +10,17 @@ function renderCompendium(pack, html) {
             li.append($(`<b class="link-derivations" data-tooltip="${frequency} derivations linked to this item">${frequency}</b>`)[0]);
     });
 }
-export default function contextMenu(html, entryOptions) {
+function entryContextMenu(html, entryOptions) {
     entryOptions.push({
+        name: 'Find Items',
+        icon: '<i class="fas fa-magnifying-glass"></i>',
+        condition: (li) => Boolean(li.find('.link-derivations').length),
+        callback: (li) => findItems(li, html),
+    }, {
+        name: 'Move Item to Another Compendium',
+        icon: '<i class="fas fa-truck"></i>',
+        callback: (li) => moveToAnotherCompendium(li, html),
+    }, {
         name: 'Delete All Linked Items',
         icon: '<i class="fas fa-link-slash"></i>',
         callback: (li) => {
@@ -24,5 +35,17 @@ export default function contextMenu(html, entryOptions) {
         },
     });
 }
+function sidebarTabFolderContextMenu(html, entryOptions) {
+    entryOptions.push({
+        name: 'Move Folder to Another Compendium',
+        icon: '<i class="fas fa-truck"></i>',
+        callback: (header) => moveFolderToAnotherCompendium(header, html),
+        condition: (header) => {
+            const uuid = header[0].parentElement.dataset.uuid;
+            return Boolean(uuid) && uuid.startsWith('Compendium.');
+        },
+    });
+}
 Hooks.on('renderCompendium', renderCompendium);
-Hooks.on('getCompendiumEntryContext', contextMenu);
+Hooks.on('getCompendiumEntryContext', entryContextMenu);
+Hooks.on('getSidebarTabFolderContext', sidebarTabFolderContextMenu);
