@@ -172,7 +172,7 @@ const API = {
             }
         }
         if (Object.keys(documentsToCheckMap).length === 0) {
-            ui.notifications.info(`No documents were found in the compendiums`);
+            Logger.info(`No documents were found in the compendiums`, true);
             return;
         }
         const itemsOnActor = actorToUpdate.items.contents ?? [];
