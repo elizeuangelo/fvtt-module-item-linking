@@ -35,6 +35,7 @@ async function searchInventory(data) {
     const subfolders = data.subfolders;
     const packs = data.packs.map((p) => game.packs.get(p));
     const folders = [];
+    const packsItems = (await Promise.all(packs.map((p) => p.getDocuments()))).flat();
     for (const id of data.folders) {
         const folder = game.folders.get(id);
         if (!folder)
@@ -55,7 +56,7 @@ async function searchInventory(data) {
             const isLinked = flags.isLinked ?? false;
             if (isLinked && baseItem)
                 continue;
-            const similarItems = await findSimilarItemsInCompendiums(item.name, item.type, packs);
+            const similarItems = await findSimilarItemsInCompendiums(item.name, item.type, packsItems);
             entries.push({ label: CONFIG.Item.typeLabels[item.type], actor, item, similarItems, baseItem, isLinked });
         }
     }
@@ -82,7 +83,6 @@ async function searchInventory(data) {
         html.find('select').on('change', (event) => {
             const select = event.currentTarget;
             const row = select.closest('tr');
-            const itemId = row.dataset.item;
             const compendiumItemEl = row.querySelector('.compendium-item');
             const resyncItemEl = row.querySelector('.resync-item');
             compendiumItemEl.dataset.uuid = select.value;
@@ -105,18 +105,14 @@ async function searchInventory(data) {
             },
         },
         render: (html) => addEventListeners(html),
-    }, { classes: ['dialog', 'item-linking-dialog'], width: 700 }).render(true);
+    }, { classes: ['dialog', 'item-linking-dialog'], width: 800, resizable: true }).render(true);
 }
-async function findSimilarItemsInCompendiums(itemName, itemType, packs, allItems = false) {
+async function findSimilarItemsInCompendiums(itemName, itemType, packsItems) {
     const rows = [];
-    for (const pack of packs) {
-        await pack.getIndex();
-        const entries = pack.index.filter((i) => i.name === itemName);
-        for (const entry of entries) {
-            const item = (await pack.getDocument(entry._id));
-            if (item && item.type === itemType) {
-                rows.push({ name: `${item.name} - ${pack.metadata.label}`, uuid: item.uuid });
-            }
+    const filteredItems = packsItems.filter((i) => i.name === itemName && i.type === itemType);
+    for (const item of filteredItems) {
+        if (item && item.type === itemType) {
+            rows.push({ name: `${item.name} - ${item.compendium.metadata.label}`, uuid: item.uuid });
         }
     }
     return rows;

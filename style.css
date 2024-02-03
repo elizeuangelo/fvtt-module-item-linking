@@ -67,12 +67,20 @@
 .item-linking-dialog [data-action='render']:hover {
 	text-decoration: underline;
 }
+.item-linking-dialog .dialog .dialog-buttons {
+	flex: 0;
+}
 .relink-inventory {
 	max-height: 400px;
-	overflow: auto;
+	overflow-y: auto;
+	overflow-x: hidden;
 }
 .relink-inventory table {
 	text-align: center;
+	table-layout: fixed;
+}
+.relink-inventory select {
+	width: 100%;
 }
 
 /*.dnd5e.sheet .sheet-header .summary a.item-link {
