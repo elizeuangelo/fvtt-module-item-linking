@@ -60,40 +60,62 @@ async function searchInventory(data) {
 		}
 	}
 
-	let tableRows = '';
+	const entries: any[] = [];
 	const actors = game.actors!.filter((a) => folders.includes(a.folder!));
 	for (const actor of actors) {
 		for (const item of actor.items) {
 			const flags = (item as any).flags['item-linking'];
 			if (!flags) continue;
 			const baseItem = flags.baseItem ? await fromUuid(flags.baseItem) : null;
-			if (flags.isLinked && baseItem) continue;
+			const isLinked = flags.isLinked ?? false;
+			if (isLinked && baseItem) continue;
 
 			const similarItems = await findSimilarItemsInCompendiums(item.name!, item.type, packs);
-			const selectHTML = createSelectHTML(similarItems, item.id);
-			const greenDotHTML = showGreenDot(similarItems);
 
-			tableRows += `
-                        <tr>
-                            <td class="actor">${actor.name}</td>
-                            <td class="name">${item.name}</td>
-                            <td>
-                                <i class="fas fa-sync-alt btn-update" data-actor-id="${actor.id}" data-item-id="${item.id}" title="Update"></i>
-                            </td>
-                            <td>${greenDotHTML}</td>
-                            <td class="similar-items">${selectHTML}</td>
-                            <td class="type">${item.type}</td>
-                            <td class="base-item">N/A</td>
-                            <td class="linked">${flags.isLinked}</td>
-                        </tr>
-                    `;
+			entries.push({ label: CONFIG.Item.typeLabels[item.type], actor, item, similarItems, baseItem, isLinked });
 		}
 	}
 
-	const content = `<table class="itable">
-                        <thead>
-                        </thead>
-                        <tbody>${tableRows}</tbody></table>`;
+	const content = await renderTemplate('modules/item-linking/templates/relink-inventory.hbs', { entries });
+
+	function addEventListeners(html: JQuery<HTMLElement>) {
+		html.find('.btn-update').on('click', async (event) => {
+			const button = event.currentTarget;
+			const row = button.closest('tr')!;
+			const itemId = row.dataset.item;
+			const select = row.querySelector('select')! as HTMLSelectElement;
+			const selectedUuid = select.value;
+			if (selectedUuid) {
+				const item = await fromUuid(button.dataset.uuid!);
+				await item.update({
+					'flags.item-linking.baseItem': selectedUuid,
+					'flags.item-linking.isLinked': true,
+				});
+				// Disable the button and change its color to gray
+				button.classList.add('btn-disabled');
+				select.disabled = true;
+
+				const dot = row.querySelector('.dot');
+				if (dot) dot.classList.add('green');
+			}
+		});
+		html.find('select').on('change', (event) => {
+			const select = event.currentTarget!;
+			const row = select.closest('tr')!;
+			const itemId = row.dataset.item;
+			const compendiumItemEl = row.querySelector('.compendium-item');
+			const resyncItemEl = row.querySelector('.resync-item');
+			compendiumItemEl.dataset.uuid = select.value;
+			compendiumItemEl.classList.toggle('btn-disabled', !select.value);
+			resyncItemEl.classList.toggle('btn-disabled', !select.value);
+		});
+		html.find('[data-action="render"]').on('click', async (event) => {
+			const button = event.currentTarget;
+			const uuid = button.dataset.uuid;
+			const item = await fromUuid(uuid);
+			item?.sheet?.render(true);
+		});
+	}
 
 	new Dialog(
 		{
@@ -104,31 +126,9 @@ async function searchInventory(data) {
 					label: 'Close',
 				},
 			},
-			render: (html) => {
-				html.find('.btn-update').click(async (event) => {
-					const button = event.currentTarget;
-					const actorId = button.dataset.actorId;
-					const itemId = button.dataset.itemId;
-					const select = document.querySelector('#similar-select-' + itemId);
-					const selectedUuid = select.value;
-					if (selectedUuid) {
-						const actor = game.actors!.get(actorId)!;
-						const item = actor.items.get(itemId)!;
-						await item.update({
-							'flags.item-linking.baseItem': selectedUuid,
-							'flags.item-linking.isLinked': true,
-						});
-						// Disable the button and change its color to gray
-						button.classList.add('btn-disabled');
-
-						// Open the item sheet of the compendium item
-						const compendiumItem = await fromUuid(selectedUuid);
-						compendiumItem.sheet.render(true);
-					}
-				});
-			},
+			render: (html) => addEventListeners(html),
 		},
-		{ classes: ['dialog', 'item-linking-dialog'], width: 600 }
+		{ classes: ['dialog', 'item-linking-dialog'], width: 700 }
 	).render(true);
 }
 
@@ -150,20 +150,4 @@ async function findSimilarItemsInCompendiums(
 		}
 	}
 	return rows;
-}
-
-// Function to create select HTML with options
-function createSelectHTML(options, itemId) {
-	let selectHTML = `<select id="similar-select-${itemId}" name="similarItem">`;
-	selectHTML += `<option value="">Select similar item</option>`;
-	for (let option of options) {
-		selectHTML += `<option value="${option.uuid}">${option.name}</option>`;
-	}
-	selectHTML += `</select>`;
-	return selectHTML;
-}
-
-// Function to check if we should show a green dot
-function showGreenDot(options) {
-	return options.length > 0 ? `<span class="dot green"></span>` : '<span class="dot red"></span>';
 }

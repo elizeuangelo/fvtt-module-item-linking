@@ -44,7 +44,7 @@ async function searchInventory(data) {
             folders.push(...folder.getSubfolders(true));
         }
     }
-    let tableRows = '';
+    const entries = [];
     const actors = game.actors.filter((a) => folders.includes(a.folder));
     for (const actor of actors) {
         for (const item of actor.items) {
@@ -52,31 +52,51 @@ async function searchInventory(data) {
             if (!flags)
                 continue;
             const baseItem = flags.baseItem ? await fromUuid(flags.baseItem) : null;
-            if (flags.isLinked && baseItem)
+            const isLinked = flags.isLinked ?? false;
+            if (isLinked && baseItem)
                 continue;
             const similarItems = await findSimilarItemsInCompendiums(item.name, item.type, packs);
-            const selectHTML = createSelectHTML(similarItems, item.id);
-            const greenDotHTML = showGreenDot(similarItems);
-            tableRows += `
-                        <tr>
-                            <td class="actor">${actor.name}</td>
-                            <td class="name">${item.name}</td>
-                            <td>
-                                <i class="fas fa-sync-alt btn-update" data-actor-id="${actor.id}" data-item-id="${item.id}" title="Update"></i>
-                            </td>
-                            <td>${greenDotHTML}</td>
-                            <td class="similar-items">${selectHTML}</td>
-                            <td class="type">${item.type}</td>
-                            <td class="base-item">N/A</td>
-                            <td class="linked">${flags.isLinked}</td>
-                        </tr>
-                    `;
+            entries.push({ label: CONFIG.Item.typeLabels[item.type], actor, item, similarItems, baseItem, isLinked });
         }
     }
-    const content = `<table class="itable">
-                        <thead>
-                        </thead>
-                        <tbody>${tableRows}</tbody></table>`;
+    const content = await renderTemplate('modules/item-linking/templates/relink-inventory.hbs', { entries });
+    function addEventListeners(html) {
+        html.find('.btn-update').on('click', async (event) => {
+            const button = event.currentTarget;
+            const row = button.closest('tr');
+            const itemId = row.dataset.item;
+            const select = row.querySelector('select');
+            const selectedUuid = select.value;
+            if (selectedUuid) {
+                const item = await fromUuid(button.dataset.uuid);
+                await item.update({
+                    'flags.item-linking.baseItem': selectedUuid,
+                    'flags.item-linking.isLinked': true,
+                });
+                button.classList.add('btn-disabled');
+                select.disabled = true;
+                const dot = row.querySelector('.dot');
+                if (dot)
+                    dot.classList.add('green');
+            }
+        });
+        html.find('select').on('change', (event) => {
+            const select = event.currentTarget;
+            const row = select.closest('tr');
+            const itemId = row.dataset.item;
+            const compendiumItemEl = row.querySelector('.compendium-item');
+            const resyncItemEl = row.querySelector('.resync-item');
+            compendiumItemEl.dataset.uuid = select.value;
+            compendiumItemEl.classList.toggle('btn-disabled', !select.value);
+            resyncItemEl.classList.toggle('btn-disabled', !select.value);
+        });
+        html.find('[data-action="render"]').on('click', async (event) => {
+            const button = event.currentTarget;
+            const uuid = button.dataset.uuid;
+            const item = await fromUuid(uuid);
+            item?.sheet?.render(true);
+        });
+    }
     new Dialog({
         title: 'Inventory Check',
         content,
@@ -85,27 +105,8 @@ async function searchInventory(data) {
                 label: 'Close',
             },
         },
-        render: (html) => {
-            html.find('.btn-update').click(async (event) => {
-                const button = event.currentTarget;
-                const actorId = button.dataset.actorId;
-                const itemId = button.dataset.itemId;
-                const select = document.querySelector('#similar-select-' + itemId);
-                const selectedUuid = select.value;
-                if (selectedUuid) {
-                    const actor = game.actors.get(actorId);
-                    const item = actor.items.get(itemId);
-                    await item.update({
-                        'flags.item-linking.baseItem': selectedUuid,
-                        'flags.item-linking.isLinked': true,
-                    });
-                    button.classList.add('btn-disabled');
-                    const compendiumItem = await fromUuid(selectedUuid);
-                    compendiumItem.sheet.render(true);
-                }
-            });
-        },
-    }, { classes: ['dialog', 'item-linking-dialog'], width: 600 }).render(true);
+        render: (html) => addEventListeners(html),
+    }, { classes: ['dialog', 'item-linking-dialog'], width: 700 }).render(true);
 }
 async function findSimilarItemsInCompendiums(itemName, itemType, packs) {
     const rows = [];
@@ -120,16 +121,4 @@ async function findSimilarItemsInCompendiums(itemName, itemType, packs) {
         }
     }
     return rows;
-}
-function createSelectHTML(options, itemId) {
-    let selectHTML = `<select id="similar-select-${itemId}" name="similarItem">`;
-    selectHTML += `<option value="">Select similar item</option>`;
-    for (let option of options) {
-        selectHTML += `<option value="${option.uuid}">${option.name}</option>`;
-    }
-    selectHTML += `</select>`;
-    return selectHTML;
-}
-function showGreenDot(options) {
-    return options.length > 0 ? `<span class="dot green"></span>` : '<span class="dot red"></span>';
 }

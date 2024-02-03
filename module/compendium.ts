@@ -67,6 +67,7 @@ function sidebarTabFolderContextMenu(html: JQuery, entryOptions: entryOption[]) 
 }
 
 function createCompendiumButton(app, html, data) {
+	if (!game.user?.isGM) return;
 	const header = html.find('.directory-header .header-actions');
 	const button = $(`<button class="create-folder"><i class="fas fa-toolbox"></i>Fix Item Links</button>`);
 	header.append(button);

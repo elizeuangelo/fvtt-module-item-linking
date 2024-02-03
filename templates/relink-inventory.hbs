@@ -1,0 +1,46 @@
+<form autocomplete="off" class="relink-inventory">
+    <table>
+        <thead>
+            <tr>
+                <th>Actor</th>
+                <th>Item</th>
+                <th>Type</th>
+                <th>Base Item</th>
+                <th>Linked</th>
+                <th>Similar Items</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each entries}}
+            <tr data-item="{{item.id}}">
+                <td data-action="render" data-uuid="{{actor.uuid}}">{{actor.name}}</td>
+                <td data-action="render" data-uuid="{{item.uuid}}">{{item.name}}</td>
+                <td>{{localize label}}</td>
+                {{#if baseItem}}
+                    <td data-action="render" data-uuid="{{baseItem.uuid}}">{{baseItem.name}}</td>
+                {{else}}
+                    <td>-</td>
+                {{/if}}
+                <td>
+                    <span
+                        class="dot {{#if isLinked}}green{{/if}}"
+                    ></span>
+                </td>
+                <td>
+                    <select name="similar-select-{{item.id}}">
+                        <option value=""></option>
+                        {{#each similarItems}}
+                            <option value="{{uuid}}">{{name}}</option>
+                        {{/each}}
+                    </select>
+                </td>
+                <td>
+                    <i class="fas fa-atlas compendium-item btn-disabled" data-action="render" data-uuid=""></i>
+                    <i class="fas fa-sync-alt resync-item btn-update btn-disabled" data-uuid="{{item.uuid}}" data-tooltip="Update"></i>
+                </td>
+            </tr>
+            {{/each}}
+        </tbody>
+    </table>
+</form>
