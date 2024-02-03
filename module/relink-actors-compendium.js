@@ -64,7 +64,6 @@ async function searchInventory(data) {
         html.find('.btn-update').on('click', async (event) => {
             const button = event.currentTarget;
             const row = button.closest('tr');
-            const itemId = row.dataset.item;
             const select = row.querySelector('select');
             const selectedUuid = select.value;
             if (selectedUuid) {
@@ -108,7 +107,7 @@ async function searchInventory(data) {
         render: (html) => addEventListeners(html),
     }, { classes: ['dialog', 'item-linking-dialog'], width: 700 }).render(true);
 }
-async function findSimilarItemsInCompendiums(itemName, itemType, packs) {
+async function findSimilarItemsInCompendiums(itemName, itemType, packs, allItems = false) {
     const rows = [];
     for (const pack of packs) {
         await pack.getIndex();

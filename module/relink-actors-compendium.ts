@@ -82,7 +82,6 @@ async function searchInventory(data) {
 		html.find('.btn-update').on('click', async (event) => {
 			const button = event.currentTarget;
 			const row = button.closest('tr')!;
-			const itemId = row.dataset.item;
 			const select = row.querySelector('select')! as HTMLSelectElement;
 			const selectedUuid = select.value;
 			if (selectedUuid) {
@@ -135,7 +134,8 @@ async function searchInventory(data) {
 async function findSimilarItemsInCompendiums(
 	itemName: string,
 	itemType: string,
-	packs: CompendiumCollection<CompendiumCollection.Metadata>[]
+	packs: CompendiumCollection<CompendiumCollection.Metadata>[],
+	allItems = false
 ) {
 	const rows: { name: string; uuid: string }[] = [];
 	for (const pack of packs) {
