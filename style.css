@@ -32,6 +32,39 @@
 	filter: drop-shadow(2px 4px 6px black);
 }
 
+.item-linking-dialog select[multiple] option:checked {
+	background-color: var(--color-border-dark-tertiary); /* Change to your preferred color */
+	color: var(--color-text-light-0); /* Change text color if needed */
+}
+.item-linking-dialog select[multiple] {
+	height: 200px;
+}
+.item-linking-dialog .btn-update {
+	cursor: pointer;
+	color: #007bff; /* Bootstrap primary color */
+	margin-left: 5px;
+	margin-right: 5px;
+}
+.item-linking-dialog .btn-update.btn-disabled {
+	color: #6c757d; /* Bootstrap secondary color */
+	pointer-events: none;
+}
+.item-linking-dialog .dot {
+	height: 10px;
+	width: 10px;
+	background-color: #28a745;
+	border-radius: 50%;
+	display: inline-block;
+	margin-right: 5px;
+	margin-left: 5px;
+}
+.item-linking-dialog .dot.green {
+	background-color: #28a745;
+}
+.item-linking-dialog .dot.red {
+	background-color: #dc3545;
+}
+
 /*.dnd5e.sheet .sheet-header .summary a.item-link {
     height: calc(100% - 6px);
     float: left;

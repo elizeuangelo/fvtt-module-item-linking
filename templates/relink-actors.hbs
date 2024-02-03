@@ -1,0 +1,26 @@
+<form autocomplete="off">
+    <p class="notes">Please choose the target Compendium Packs and the Actor Folders to fix.</p>
+    <div class="form-group">
+        <label>{{ localize "Item Compendiums" }}</label>
+        <div class="form-fields">
+            <select name="packs" multiple="multiple" required>
+                {{selectOptions packs nameAttr="id" labelAttr="name"}}
+            </select>
+        </div>
+    </div>
+    <div class="form-group">
+        <label>{{ localize "Actor Folders" }}</label>
+        <div class="form-fields">
+            <select name="folders" multiple="multiple" required>
+                {{selectOptions folders nameAttr="id" labelAttr="name"}}
+            </select>
+        </div>
+    </div>
+    <fieldset>
+        <legend>{{ localize "Relink Options" }}</legend>
+        <div class="form-group">
+            <label>{{ localize "Include Subfolders" }}</label>
+            <input type="checkbox" name="subfolders" checked />
+        </div>
+    </fieldset>
+</form>

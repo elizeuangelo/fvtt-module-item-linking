@@ -1,6 +1,7 @@
 import { findDerived } from './item.js';
 import { findItems } from './findItems.js';
 import { moveFolderToAnotherCompendium, moveToAnotherCompendium } from './moveToAnotherCompendium.js';
+import { relinkActorsCompendiumApp } from './relink-actors-compendium.js';
 function renderCompendium(pack, html) {
     const freq = findDerived();
     [...html.find('ol.directory-list li')].forEach((li) => {
@@ -46,6 +47,13 @@ function sidebarTabFolderContextMenu(html, entryOptions) {
         },
     });
 }
+function createCompendiumButton(app, html, data) {
+    const header = html.find('.directory-header .header-actions');
+    const button = $(`<button class="create-folder"><i class="fas fa-toolbox"></i>Fix Item Links</button>`);
+    header.append(button);
+    button.on('click', () => relinkActorsCompendiumApp());
+}
 Hooks.on('renderCompendium', renderCompendium);
 Hooks.on('getCompendiumEntryContext', entryContextMenu);
 Hooks.on('getSidebarTabFolderContext', sidebarTabFolderContextMenu);
+Hooks.on('renderCompendiumDirectory', createCompendiumButton);
