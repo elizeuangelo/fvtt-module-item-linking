@@ -82,13 +82,3 @@
 .relink-inventory select {
 	width: 100%;
 }
-
-/*.dnd5e.sheet .sheet-header .summary a.item-link {
-    height: calc(100% - 6px);
-    float: left;
-    margin: 2px 0;
-    padding: 0;
-    border-right: 2px groove #eeede0;
-    line-height: 34px;
-    color: #4b4a44;
-}*/

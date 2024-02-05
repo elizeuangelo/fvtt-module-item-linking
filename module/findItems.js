@@ -1,28 +1,32 @@
 import { findDerived } from './item.js';
+
+/**
+ * Finds and displays linked items in a dialog box.
+ * @param {jQuery} li - The list item element.
+ * @param {jQuery} html - The HTML element.
+ * @returns {Promise<void>} - A promise that resolves when the dialog is rendered.
+ */
 export async function findItems(li, html) {
-    async function deleteItemFromActor(itemUuid) {
-        const itemToDelete = await fromUuid(itemUuid);
-        if (!itemToDelete)
-            return false;
-        await itemToDelete.delete();
-        return true;
-    }
-    function addListeners(html) {
-        html.find('.delete-button').on('click', async (ev) => {
-            const el = ev.currentTarget;
-            const uuid = el.dataset.uuid;
-            const deleted = await deleteItemFromActor(uuid);
-            if (deleted)
-                el.closest('tr').classList.add('disabled');
-        });
-    }
-    const pack = html.data().pack;
-    const freq = findDerived();
-    const uuid = 'Compendium.' + pack + '.Item.' + li[0].dataset.documentId;
-    const derivations = freq[uuid];
-    if (!derivations?.length)
-        return ui.notifications.info(`There are no items derived from this item`);
-    const content = `
+	async function deleteItemFromActor(itemUuid) {
+		const itemToDelete = await fromUuid(itemUuid);
+		if (!itemToDelete) return false;
+		await itemToDelete.delete();
+		return true;
+	}
+	function addListeners(html) {
+		html.find('.delete-button').on('click', async (ev) => {
+			const el = ev.currentTarget;
+			const uuid = el.dataset.uuid;
+			const deleted = await deleteItemFromActor(uuid);
+			if (deleted) el.closest('tr').classList.add('disabled');
+		});
+	}
+	const pack = html.data().pack;
+	const freq = findDerived();
+	const uuid = 'Compendium.' + pack + '.Item.' + li[0].dataset.documentId;
+	const derivations = freq[uuid];
+	if (!derivations?.length) return ui.notifications.info(`There are no items derived from this item`);
+	const content = /*html*/ `
         <style>
             table.list-linked {
                 text-align: center;
@@ -44,7 +48,8 @@ export async function findItems(li, html) {
                 </thead>
                 <tbody>
                     ${derivations
-        .map((i) => `
+								.map(
+									(i) => `
                     <tr>
                         <td>${i.actor?.link ?? '<i>World Items Collection</i>'}</td>
                         <td>${i.link}</td>
@@ -53,24 +58,29 @@ export async function findItems(li, html) {
                                 <i class="fa-solid fa-trash-can"></i>
                             </a>
                         </td>
-                    </tr>`)
-        .join('')}
+                    </tr>`
+								)
+								.join('')}
                 </tbody>
             </table>
         </div>
     `;
-    const enrichedHTML = await TextEditor.enrichHTML(content, { async: true });
-    new Dialog({
-        title: 'Linked Items',
-        content: enrichedHTML,
-        render: (html) => {
-            addListeners(html);
-        },
-        buttons: {
-            done: {
-                label: 'Done',
-                icon: "<i class='fa-solid fa-check'></i>",
-            },
-        },
-    }, { width: 500 }).render(true);
+	const enrichedHTML = await TextEditor.enrichHTML(content, { async: true });
+	new Dialog(
+		{
+			title: 'Linked Items',
+			content: enrichedHTML,
+			render: (html) => {
+				addListeners(html);
+			},
+			buttons: {
+				done: {
+					label: 'Done',
+					icon: "<i class='fa-solid fa-check'></i>",
+				},
+			},
+		},
+		{ width: 500 }
+	).render(true);
 }
+
