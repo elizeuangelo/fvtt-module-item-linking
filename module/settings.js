@@ -39,6 +39,14 @@ const settings = {
         type: Number,
         default: 0,
     },
+    debug: {
+        name: 'Enable logging debug',
+        hint: 'Print on the web console more informations about this module.',
+        scope: 'client',
+        config: true,
+        type: Boolean,
+        default: false,
+    },
 };
 export function getSetting(name) {
     return game.settings.get(MODULE, name);
