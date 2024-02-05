@@ -1,8 +1,13 @@
-import { MODULE } from "./settings.js";
-import { getItemAsync, getActorAsync, getCompendiumCollectionAsync, parseAsArray, warn, getItemSync, error } from "./utils.js";
+import { isPrimaryItem, parseAsArray } from "./utils.js";
+import Logger from './lib/Logger.js';
+import {RetrieveHelpers} from './lib/retrieve-helpers.js';
 const API = {
+    isPrimaryItem(itemToCheck) {
+        const itemToCheckTmp = RetrieveHelpers.getItemSync(itemToCheck);
+        return isPrimaryItem(itemToCheckTmp);
+    },
     isItemNotLinked(itemToCheck) {
-        const itemToCheckTmp = getItemSync(itemToCheck);
+        const itemToCheckTmp = RetrieveHelpers.getItemSync(itemToCheck);
         const isLinked = getProperty(itemToCheckTmp, `flags.item-linking.isLinked`);
         if (!isLinked) {
             return true;
@@ -10,7 +15,7 @@ const API = {
         return false;
     },
     isItemLinked(itemToCheck) {
-        const itemToCheckTmp = getItemSync(itemToCheck);
+        const itemToCheckTmp = RetrieveHelpers.getItemSync(itemToCheck);
         const hasBaseItem = getProperty(itemToCheckTmp, `flags.item-linking.baseItem`);
         const isLinked = getProperty(itemToCheckTmp, `flags.item-linking.isLinked`);
         if (hasBaseItem && isLinked) {
@@ -19,7 +24,7 @@ const API = {
         return false;
     },
     isItemBrokenLink(itemToCheck) {
-        const itemToCheckTmp = getItemSync(itemToCheck);
+        const itemToCheckTmp = RetrieveHelpers.getItemSync(itemToCheck);
         const hasBaseItem = getProperty(itemToCheckTmp, `flags.item-linking.baseItem`);
         const isLinked = getProperty(itemToCheckTmp, `flags.item-linking.isLinked`);
         if (!hasBaseItem && isLinked) {
@@ -28,7 +33,7 @@ const API = {
         return false;
     },
     isItemUnlinked(itemToCheck) {
-        const itemToCheckTmp = getItemSync(itemToCheck);
+        const itemToCheckTmp = RetrieveHelpers.getItemSync(itemToCheck);
         const hasBaseItem = getProperty(itemToCheckTmp, `flags.item-linking.baseItem`);
         const isLinked = getProperty(itemToCheckTmp, `flags.item-linking.isLinked`);
         if (!hasBaseItem && !isLinked) {
@@ -37,43 +42,43 @@ const API = {
         return false;
     },
     retrieveLinkedItem(itemToCheck) {
-        const itemToCheckTmp = getItemSync(itemToCheck);
+        const itemToCheckTmp = RetrieveHelpers.getItemSync(itemToCheck);
         if (!this.isItemLinked(itemToCheckTmp)) {
-            warn(`The item ${itemToCheckTmp.name}|${itemToCheckTmp.uuid} is not linked`);
+            Logger.warn(`The item ${itemToCheckTmp.name}|${itemToCheckTmp.uuid} is not linked`);
             return;
         }
         const baseItemUuid = getProperty(itemToCheckTmp, `flags.item-linking.baseItem`);
         if (!baseItemUuid) {
-            warn(`No baseItemUuid is been found for ${itemToCheckTmp.name}|${itemToCheckTmp.uuid}`);
+            Logger.warn(`No baseItemUuid is been found for ${itemToCheckTmp.name}|${itemToCheckTmp.uuid}`);
             return;
         }
         const baseItem = fromUuidSync(baseItemUuid);
         if (!baseItem) {
-            warn(`No baseItem is been found for ${itemToCheckTmp.name}|${itemToCheckTmp.uuid}`);
+            Logger.warn(`No baseItem is been found for ${itemToCheckTmp.name}|${itemToCheckTmp.uuid}`);
             return;
         }
         return baseItem;
     },
     async setLinkedItem(itemToCheck, itemBaseReference) {
         if (!itemBaseReference) {
-            warn(`The 'baseItemReference' is null or empty`);
+            Logger.warn(`The 'baseItemReference' is null or empty`);
             return;
         }
-        let itemToCheckTmp = await getItemAsync(itemToCheck);
+        let itemToCheckTmp = await RetrieveHelpers.getItemAsync(itemToCheck);
         if (this.isItemLinked(itemToCheckTmp)) {
             return itemToCheckTmp;
         }
-        const baseItem = await getItemAsync(itemBaseReference);
+        const baseItem = await RetrieveHelpers.getItemAsync(itemBaseReference);
         const uuidToSet = this.retrieveLinkedItem(baseItem)?.uuid ??
             getProperty(baseItem, `flags.core.sourceId`) ??
             baseItem.uuid;
         if (!uuidToSet) {
-            warn(`The 'uuidToSet' is null or empty`);
+            Logger.warn(`The 'uuidToSet' is null or empty`);
             return;
         }
         const baseItemUuid = getProperty(itemToCheckTmp, `flags.item-linking.baseItem`);
         if (baseItemUuid) {
-            warn(`No baseItemUuid is been found for ${itemToCheckTmp.name}|${itemToCheckTmp.uuid}`);
+            Logger.warn(`No baseItemUuid is been found for ${itemToCheckTmp.name}|${itemToCheckTmp.uuid}`);
             return;
         }
         await itemToCheckTmp.setFlag("item-linking", "baseItem", uuidToSet);
@@ -81,9 +86,9 @@ const API = {
         return itemToCheckTmp;
     },
     async replaceItemWithLinkedItemOnActor(itemToCheck, force = false) {
-        let itemToCheckTmp = await getItemAsync(itemToCheck);
+        let itemToCheckTmp = await RetrieveHelpers.getItemAsync(itemToCheck);
         if (this.isItemLinked(itemToCheckTmp)) {
-            const toReplace = await getItemAsync(itemToCheckTmp.uuid);
+            const toReplace = await RetrieveHelpers.getItemAsync(itemToCheckTmp.uuid);
             const itemLinked = this.retrieveLinkedItem(itemToCheckTmp);
             const obj = item.toObject();
             obj.flags["item-linking"] = {
@@ -92,7 +97,7 @@ const API = {
             };
             const owner = toReplace.actor;
             if (!owner) {
-                throw error(`The item '${itemToCheckTmp}' is not on a actor`);
+                throw Logger.error(`The item '${itemToCheckTmp}' is not on a actor`);
             }
             if (force) {
                 await toReplace.delete();
@@ -106,12 +111,12 @@ const API = {
             return await owner.createEmbeddedDocuments("Item", [obj]);
         }
         else {
-            warn(`The item '${itemToCheckTmp?.name}' is already linked`);
+            Logger.warn(`The item '${itemToCheckTmp?.name}' is already linked`);
         }
     },
     async tryToUpdateActorWithLinkedDocumentsFromCompendiumFolder(actor, compendiumsFolderToCheck, options) {
         if (!compendiumsFolderToCheck) {
-            ui.notifications.warn(`${MODULE} | tryToUpdateActorWithLinkedDocumentsFromCompendiumFolder | No compendiums folder is been passed`);
+            Logger.warn(`tryToUpdateActorWithLinkedDocumentsFromCompendiumFolder | No compendiums folder is been passed`, true);
             return;
         }
         const compendiumsFolder = parseAsArray(compendiumsFolderToCheck);
@@ -126,9 +131,9 @@ const API = {
         await this.tryToUpdateActorWithLinkedDocumentsFromCompendiums(actor, compendiumsFiltered, options);
     },
     async tryToUpdateActorWithLinkedDocumentsFromCompendiums(actor, compendiumsToCheck, options) {
-        const actorToUpdate = await getActorAsync(actor, false);
+        const actorToUpdate = await RetrieveHelpers.getActorAsync(actor, false);
         if (!actorToUpdate) {
-            ui.notifications.warn(`${MODULE} | tryToUpdateActorWithLinkedDocumentsFromCompendiums | No Actor is been passed`);
+            Logger.warn(`tryToUpdateActorWithLinkedDocumentsFromCompendiums | No Actor is been passed`, true);
             return;
         }
         const compendiumsReferences = parseAsArray(compendiumsToCheck);
@@ -137,13 +142,13 @@ const API = {
         const compendiumForNoMatch = options.compendiumForNoMatch ? options.compendiumForNoMatch : "No Linked Documents";
         const compendiums = [];
         for (const ref of compendiumsReferences) {
-            const comp = await getCompendiumCollectionAsync(ref, false);
+            const comp = await RetrieveHelpers.getCompendiumCollectionAsync(ref, false);
             if (comp) {
                 compendiums.push(comp);
             }
         }
         if (!compendiums || compendiums.length === 0) {
-            ui.notifications.warn(`${MODULE} | tryToLinkItemsFromCompendium | No Compendiums is been passed with value`);
+            Logger.warn(`tryToLinkItemsFromCompendium | No Compendiums is been passed with value`, true);
             return;
         }
         const documentsToCheckMap = {};
@@ -167,7 +172,7 @@ const API = {
             }
         }
         if (Object.keys(documentsToCheckMap).length === 0) {
-            ui.notifications.info(`No documents were found in the compendiums`);
+            Logger.info(`No documents were found in the compendiums`, true);
             return;
         }
         const itemsOnActor = actorToUpdate.items.contents ?? [];
@@ -228,7 +233,7 @@ const API = {
         if (confirm) {
             const noMatchCompendium = game.packs.contents.find((pack) => pack.metadata.label === compendiumForNoMatch);
             if (!noMatchCompendium) {
-                ui.notifications.error(`Compendium ${compendiumForNoMatch} not found`);
+                Logger.error(`Compendium ${compendiumForNoMatch} not found`, true);
                 return;
             }
             let items_fixed = 0;
