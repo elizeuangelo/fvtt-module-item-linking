@@ -28,6 +28,7 @@ function renderCompendium(pack, html) {
  * @param {Array} entryOptions - The array of existing entry options.
  */
 function entryContextMenu(html, entryOptions) {
+	if (!game.user?.isGM) return;
 	entryOptions.push(
 		{
 			name: 'Find Items',
@@ -62,6 +63,7 @@ function entryContextMenu(html, entryOptions) {
  * @param {Array} entryOptions - The array of entry options in the context menu.
  */
 function sidebarTabFolderContextMenu(html, entryOptions) {
+	if (!game.user.isGM) return;
 	entryOptions.push({
 		name: 'Move Folder to Another Compendium',
 		icon: '<i class="fas fa-truck"></i>',
