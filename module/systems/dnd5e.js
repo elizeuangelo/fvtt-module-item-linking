@@ -60,8 +60,10 @@ function onSearchFilter(event, query, rgx, html) {
 }
 
 function renderItemSheet(sheet, html) {
+	if (!html.jquery) html = $(html);
 	const item = sheet.document;
 	if (item.compendium && !item.isEmbedded) return;
+	html.find('.summary.link').remove();
 	const linked = getFlag(item, 'isLinked') ?? false;
 	const baseItemId = getFlag(item, 'baseItem') ?? null;
 	const brokenLink = baseItemId ? !Boolean(fromUuidSync(baseItemId)) : true;
@@ -198,32 +200,37 @@ function AFXcontextOptions(fx, buttons) {
 	}
 }
 
+async function magicItems2Hook(sheet, html) {
+	if (!html.jquery) html = $(html);
+	const tab = html.find('.tab.magic-items');
+	if (tab.length) {
+		const item = sheet.item;
+		const linked = getFlag(item, 'isLinked');
+		if (linked && (!item.compendium || item.isEmbedded)) {
+			for (let i = 0; i < 20; i++) {
+				if (html.find('.magic-items-content').length) break;
+				await sleep(100);
+			}
+			tab.find('.spell-drag-content').remove();
+			const drop = sheet._dragDrop.filter((list) => list.dropSelector === '.tab.magic-items');
+			drop.forEach((drop) => {
+				Object.entries(drop.callbacks).forEach(([ev, fn]) => {
+					drop.callbacks[ev] = function () {};
+				});
+			});
+		}
+	}
+	renderItemSheet(sheet, html);
+}
+
 /** -------------------------------------------- */
 Hooks.on('renderActorSheet5e', renderActorSheet);
 Hooks.on('dnd5e.getActiveEffectContextOptions', AFXcontextOptions);
 if (game.modules.get('magic-items-2')?.active) {
-	Hooks.on('renderItemSheet', async (sheet, html) => {
-		const tab = html.find('.tab.magic-items');
-		if (tab.length) {
-			const item = sheet.item;
-			const linked = getFlag(item, 'isLinked');
-			if (linked && (!item.compendium || item.isEmbedded)) {
-				for (let i = 0; i < 20; i++) {
-					if (html.find('.magic-items-content').length) break;
-					await sleep(100);
-				}
-				tab.find('.spell-drag-content').remove();
-				const drop = sheet._dragDrop.filter((list) => list.dropSelector === '.tab.magic-items');
-				drop.forEach((drop) => {
-					Object.entries(drop.callbacks).forEach(([ev, fn]) => {
-						drop.callbacks[ev] = function () {};
-					});
-				});
-			}
-		}
-		renderItemSheet(sheet, html);
-	});
+	Hooks.on('renderItemSheet', magicItems2Hook);
+	Hooks.on('tidy5e-sheet.renderItemSheet', magicItems2Hook);
 } else {
 	Hooks.on('renderItemSheet', renderItemSheet);
+	Hooks.on('tidy5e-sheet.renderItemSheet', renderItemSheet);
 }
 
