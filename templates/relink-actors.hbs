@@ -16,11 +16,24 @@
             </select>
         </div>
     </div>
+    <div class="form-group">
+        <label>{{ localize "Filter By Type" }}</label>
+        <div class="form-fields">
+            <select name="typeFilter">
+                <option id=""></option>
+                {{selectOptions types}}
+            </select>
+        </div>
+    </div>
     <fieldset>
         <legend>{{ localize "Relink Options" }}</legend>
         <div class="form-group">
             <label>{{ localize "Include Subfolders" }}</label>
             <input type="checkbox" name="subfolders" checked />
+        </div>
+        <div class="form-group">
+            <label>Hide Unmatched Items</label>
+            <input type="checkbox" name="hideUnmatched" checked />
         </div>
     </fieldset>
 </form>
