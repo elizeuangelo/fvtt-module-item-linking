@@ -1,3 +1,10 @@
+/**
+ * A wrapper for entering a Dialog into processing mode.
+ * Processing mode disables all buttons in the dialog, removes the close button
+ * and replaces the processor button with a loading spinner.
+ * The icon and label of the button can be replaced on demand.
+ * @class
+ */
 export class ProcessingDialog {
 	constructor(dialog, buttonId) {
 		this.dialog = dialog;
@@ -6,12 +13,27 @@ export class ProcessingDialog {
 		this.#replaceSubmit();
 	}
 
+	/**
+	 * Disables all buttons in the dialog.
+	 */
 	#disableButtons() {
 		this.dialog.element.find('button').prop('disabled', true);
 	}
+
+	/**
+	 * Disables the close button in the dialog header.
+	 */
 	#disableCloseButton() {
 		this.dialog.element.find('a.header-button').remove();
 	}
+
+	/**
+	 * Handles the submit event for the dialog.
+	 *
+	 * @param {HTMLElement} button - The button element that triggered the submit event.
+	 * @param {Event} event - The submit event object.
+	 * @returns {void}
+	 */
 	_newSubmit(button, event) {
 		if (this.buttonData === button) {
 			const target = this.dialog.options.jQuery ? this.dialog.element : this.dialog.element[0];
@@ -24,19 +46,35 @@ export class ProcessingDialog {
 		}
 		return Dialog.prototype.submit.call(this.dialog, button, event);
 	}
+
+	/**
+	 * Replaces the submit function of the dialog with a new submit function.
+	 * @private
+	 */
 	#replaceSubmit() {
 		this.dialog.submit = this._newSubmit.bind(this);
 	}
 
-	get button() {
-		return this.dialog.element.find(`button[data-button="${this.buttonId}"]`);
-	}
-
+	/**
+	 * Process the given label.
+	 * @param {string} label - The label to process.
+	 */
 	process(label) {
 		this.#disableButtons();
 		this.#disableCloseButton();
 		this.icon = 'fa-solid fa-spinner fa-spin-pulse';
 		if (label) this.label = label;
+	}
+
+	/**
+	 * Closes the dialog.
+	 */
+	close() {
+		this.dialog.close();
+	}
+
+	get button() {
+		return this.dialog.element.find(`button[data-button="${this.buttonId}"]`);
 	}
 
 	get icon() {
@@ -51,9 +89,5 @@ export class ProcessingDialog {
 	}
 	set label(value) {
 		this.button[0].childNodes[2].textContent = value;
-	}
-
-	close() {
-		this.dialog.close();
 	}
 }
