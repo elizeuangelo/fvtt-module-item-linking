@@ -1,6 +1,6 @@
 import { getFlag } from './flags.js';
 import { MODULE_ID, getSetting } from './settings.js';
-import { KEEP_PROPERTIES } from './system.js';
+import { keepPropertiesOverride } from './system.js';
 import { deletionKeys, isPrimaryItem } from './utils.js';
 
 /**
@@ -31,10 +31,11 @@ export function findDerived() {
 /**
  * Returns an array of properties to keep when linking an item.
  * "Kept" properties are not inherited from the base item.
- * @param {boolean} [keepEmbedded=true] - Whether to keep embedded properties.
+ * @param {boolean} keepEmbedded - Whether to keep embedded properties.
+ * @param {Item} item - The item to keep properties for.
  * @returns {string[]} - The array of properties to keep.
  */
-function getKeepProperties(keepEmbedded = true) {
+function getKeepProperties(keepEmbedded, item) {
 	const additional = getSetting('linkHeader') ? [] : ['name', 'img'];
 	const exceptions = getSetting('linkPropertyExceptions');
 	return [
@@ -45,7 +46,7 @@ function getKeepProperties(keepEmbedded = true) {
 		'ownership',
 		'folder',
 		'sort',
-		...KEEP_PROPERTIES,
+		...keepPropertiesOverride(item),
 		...additional,
 		...(exceptions !== '' ? exceptions.split(',') : []),
 		...(keepEmbedded ? Object.values(CONFIG.Item.documentClass.metadata.embedded) : []),
@@ -55,10 +56,10 @@ function getKeepProperties(keepEmbedded = true) {
 /**
  * Removes properties from the given object that are specified in the `keys` array.
  * @param {Object} changes - The object from which properties will be removed.
- * @param {string[]} [keys=getKeepProperties()] - The array of property keys to be removed.
+ * @param {string[]} keys - The array of property keys to be removed.
  * @returns {Object} - The modified object with removed properties.
  */
-function removeKeepProperties(changes, keys = getKeepProperties()) {
+function removeKeepProperties(changes, keys) {
 	keys.forEach((key) => {
 		const ps = key.split('.');
 		let target = changes;
@@ -82,10 +83,10 @@ function removeKeepProperties(changes, keys = getKeepProperties()) {
  * @returns {object} - The changes between the two item data objects.
  */
 export function createChanges(itemData, baseItemData, ignoreEmbedded = true) {
-	const source = removeKeepProperties(foundry.utils.deepClone(itemData));
+	const source = removeKeepProperties(foundry.utils.deepClone(itemData), getKeepProperties(true, itemData));
 	const baseItemSource = removeKeepProperties(
 		foundry.utils.deepClone(baseItemData),
-		getKeepProperties(ignoreEmbedded)
+		getKeepProperties(ignoreEmbedded, itemData)
 	);
 	const diff = foundry.utils.diffObject(source, baseItemSource);
 	const deletions = deletionKeys(source, baseItemSource);
@@ -195,7 +196,10 @@ function preUpdateItem(item, changes, options) {
 		}
 		derived?.forEach((derivation) =>
 			derivation.update(
-				{ ...createChanges(derivation._source, item._source), ...removeKeepProperties(derived_changes) },
+				{
+					...createChanges(derivation._source, item._source),
+					...removeKeepProperties(derived_changes, getKeepProperties(true, derivation._source)),
+				},
 				{ linkedUpdate: true }
 			)
 		);
