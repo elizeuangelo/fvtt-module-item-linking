@@ -122,15 +122,22 @@ function preUpdateItem(item, changes, options) {
 	const linked = changes.flags?.[MODULE_ID]?.isLinked ?? getFlag(item, 'isLinked');
 	const baseItemId = changes.flags?.[MODULE_ID]?.baseItem ?? getFlag(item, 'baseItem');
 	const linkedUpdate = options?.linkedUpdate ?? false;
-	if (
-		linkedUpdate === false &&
-		linked === true &&
-		(changes.flags?.[MODULE_ID]?.isLinked || changes.flags?.[MODULE_ID]?.baseItem)
-	) {
+	if (linkedUpdate === false && linked === true && changes.flags?.[MODULE_ID]) {
 		if (!item.compendium || item.isEmbedded) {
 			fromUuid(baseItemId)
 				.then((baseItem) => {
-					const addChanges = baseItem ? createChanges(item._source, baseItem._source) : {};
+					const data = deepClone(item._source);
+					if (changes.flags?.[MODULE_ID]?.overrideOwnerUser !== undefined) {
+						setProperty(data, `flags.${MODULE_ID}.overrideOwnerUser`, changes.flags[MODULE_ID].overrideOwnerUser);
+					}
+					if (changes.flags?.[MODULE_ID]?.linkPropertyExceptions !== undefined) {
+						setProperty(
+							data,
+							`flags.${MODULE_ID}.linkPropertyExceptions`,
+							changes.flags[MODULE_ID].linkPropertyExceptions
+						);
+					}
+					const addChanges = baseItem ? createChanges(data, baseItem._source) : {};
 					mergeObject(changes, addChanges);
 					const exceptions = getSetting('linkPropertyExceptions').split(',');
 					Object.entries(CONFIG.Item.documentClass.metadata.embedded).forEach(([collectionName, collection]) => {

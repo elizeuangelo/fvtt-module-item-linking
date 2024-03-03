@@ -8,6 +8,7 @@ export function canOverride(itemData) {
 }
 
 function createOverrideButton(sheet, buttons) {
+	if (sheet.item.compendium) return;
 	if (!getSetting('itemOverrides')) return;
 	if (!canOverride(sheet.item)) return;
 	buttons.unshift({
