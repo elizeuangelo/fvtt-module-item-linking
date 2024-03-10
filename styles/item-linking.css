@@ -6,6 +6,10 @@
 	max-height: 20px;
 }
 
+.tidy5e-sheet.sheet .link input[type='search'] {
+	height: auto;
+}
+
 .tidy5e.sheet.item .sheet-body .tab.item-betterRolls .form-group input:checked:disabled,
 .tidy5e.sheet.item .sheet-body .tab.details .form-group input:checked:disabled,
 .tidy5e.sheet.item .sheet-body .tab.advancement .form-group input:checked:disabled,

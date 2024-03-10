@@ -1,4 +1,13 @@
-export let KEEP_PROPERTIES = [];
+import { canOverride } from './item-overrides.js';
+import { MODULE_ID } from './settings.js';
+
+const KEEP_PROPERTIES = [];
+
+export function keepPropertiesOverride(itemData) {
+	if (!canOverride(itemData)) return KEEP;
+	const exceptions = itemData.flags?.[MODULE_ID]?.linkPropertyExceptions ?? '';
+	return [...KEEP_PROPERTIES, ...(exceptions !== '' ? exceptions.split(',') : [])];
+}
 
 /**
  * Import the current system, if supported, and get the its keep properties
@@ -12,6 +21,6 @@ Hooks.once('ready', async () => {
 	}
 	if (system === '') return;
 	const { KEEP } = await import(system);
-	return (KEEP_PROPERTIES = KEEP);
+	KEEP_PROPERTIES.push(...KEEP);
 });
 

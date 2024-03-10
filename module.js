@@ -3,9 +3,9 @@ import { findDerived } from './module/item.js';
 import { MODULE_ID, getSetting } from './module/settings.js';
 import Logger from './module/lib/Logger.js';
 import API from './module/api.js';
-import('./module/flags.js');
-import('./module/compendium.js');
-import('./module/actor.js');
+import './module/compendium.js';
+import './module/actor.js';
+import './module/item-overrides.js';
 
 Hooks.once('setup', () => {
 	import('./module/embedded.js');

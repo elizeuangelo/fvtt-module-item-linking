@@ -14,16 +14,13 @@ function getPacksByType() {
 }
 
 /**
- * Finds the compendium that contains an item with the given ID.
- * @param {string} id - The ID of the item.
- * @returns {object|null} - The compendium object if found, or null if not found.
+ * Checks if an item is from a Compendium source.
+ *
+ * @param {Item} item - The item to check.
+ * @returns {boolean} - Returns true if the item is from a Compendium source, false otherwise.
  */
-export function findCompendiumFromItemID(id) {
-	for (const pack of PACKS) {
-		const res = pack.index.get(id);
-		if (res !== undefined) return pack;
-	}
-	return null;
+export function fromCompendiumSource(item) {
+	return Boolean(/Compendium/.exec(item.getFlag('core', 'sourceId')));
 }
 
 /**

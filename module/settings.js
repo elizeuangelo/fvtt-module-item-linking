@@ -34,6 +34,22 @@ const settings = {
 		type: String,
 		default: '',
 	},
+	itemOverrides: {
+		name: 'Custom Item Overrides',
+		hint: 'Allow custom exceptions for specific items. Adding an override button to the item sheet header.',
+		scope: 'world',
+		config: true,
+		type: Boolean,
+		default: false,
+	},
+	defaultItemOverrides: {
+		name: 'Default Custom Item Overrides',
+		hint: 'The default custom exceptions when you click the default button on the custom item override dialog.',
+		scope: 'world',
+		config: true,
+		type: String,
+		default: 'name,img,system.description.value,system.unidentified.description,system.description.chat',
+	},
 	update: {
 		scope: 'world',
 		config: false,
