@@ -28,7 +28,7 @@ function renderCompendium(pack, html) {
  * @param {Array} entryOptions - The array of existing entry options.
  */
 function entryContextMenu(html, entryOptions) {
-	if (!game.user?.isGM) return;
+	if (!game.user.isGM) return;
 	entryOptions.push(
 		{
 			name: 'Find Items',

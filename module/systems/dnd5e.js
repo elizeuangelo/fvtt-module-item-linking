@@ -2,6 +2,7 @@ import { getFlag } from '../flags.js';
 import { PACKS, createUuidFromIndex, getItemsFromCompendiumsByType } from '../packs.js';
 import { MODULE_ID, getSetting } from '../settings.js';
 import { sleep } from '../utils.js';
+import { keepPropertiesOverride } from '../system.js';
 
 export const KEEP = [
 	'flags.item-linking.isLinked',
@@ -60,8 +61,10 @@ function onSearchFilter(event, query, rgx, html) {
 }
 
 function renderItemSheet(sheet, html) {
+	if (!html.jquery) html = $(html);
 	const item = sheet.document;
 	if (item.compendium && !item.isEmbedded) return;
+	html.find('.summary.link').remove();
 	const linked = getFlag(item, 'isLinked') ?? false;
 	const baseItemId = getFlag(item, 'baseItem') ?? null;
 	const brokenLink = baseItemId ? !Boolean(fromUuidSync(baseItemId)) : true;
@@ -107,27 +110,34 @@ function renderItemSheet(sheet, html) {
 	}
 	if (!linked) return;
 	const rgx = /^system\.|^flags\./;
-	const filter = (input) =>
+	const KEEP = keepPropertiesOverride(sheet.item);
+	const filter = (_idx, element) =>
 		!(
-			!rgx.exec(input.name) ||
-			KEEP.includes(input.name) ||
-			input.hasAttribute('data-link-keep') ||
-			(input.type === 'color' && input.previousElementSibling?.disabled)
+			(element.name && !rgx.exec(element.name)) ||
+			KEEP.includes(element.name) ||
+			(element.dataset.target && KEEP.includes(element.dataset.target)) ||
+			element.hasAttribute('data-link-keep') ||
+			(element.type === 'color' && element.previousElementSibling?.disabled)
 		);
-	$([...html.find('input'), ...html.find('select'), ...html.find('textarea')].filter(filter)).attr('disabled', '');
+
+	html.find('input,select,textarea,[data-target]').filter(filter).attr('disabled', '');
 	if (getSetting('linkHeader')) {
-		html.find('input[name="name"]').attr('disabled', '');
-		html.find('img.profile').off('click');
+		if (!KEEP.includes('name')) html.find('input[name="name"]').attr('disabled', '');
+		if (!KEEP.includes('img')) {
+			html.find('img.profile').off('click');
+		}
 	}
-	const deletions = ['a.editor-edit', 'div.item-controls', '.damage-control'];
-	deletions.forEach((deletion) => html.find(deletion).remove());
+
+	html.find('a.editor-edit,div.item-controls,.damage-control,a[disabled]').remove();
+	if (!KEEP.includes('system.description.value')) html.find('button.edit-item-description').remove();
+
 	const fixes = [{ sel: 'input[name="system.uses.max"]', val: sheet.item.system.uses?.max ?? '' }];
 	fixes.forEach((f) => html.find(f.sel).val(f.val));
 	if (getSetting('hideUselessInformation')) {
 		html.find('input[type=checkbox][disabled]:only-of-type:not(:checked)').parent().remove();
 		if (item.type === 'weapon') {
 			const weaponProperties = html.find('div.weapon-properties');
-			if (weaponProperties[0].childElementCount < 2) weaponProperties.remove();
+			if (weaponProperties[0]?.childElementCount < 2) weaponProperties.remove();
 		}
 		html[0].querySelectorAll('.form-group:not(:has(button:only-child))').forEach((v, idx) => {
 			const input = v.querySelector('input:not([value=""])');
@@ -198,32 +208,37 @@ function AFXcontextOptions(fx, buttons) {
 	}
 }
 
+async function magicItems2Hook(sheet, html) {
+	if (!html.jquery) html = $(html);
+	const tab = html.find('.tab.magic-items');
+	if (tab.length) {
+		const item = sheet.item;
+		const linked = getFlag(item, 'isLinked');
+		if (linked && (!item.compendium || item.isEmbedded)) {
+			for (let i = 0; i < 20; i++) {
+				if (html.find('.magic-items-content').length) break;
+				await sleep(100);
+			}
+			tab.find('.spell-drag-content').remove();
+			const drop = sheet._dragDrop.filter((list) => list.dropSelector === '.tab.magic-items');
+			drop.forEach((drop) => {
+				Object.entries(drop.callbacks).forEach(([ev, fn]) => {
+					drop.callbacks[ev] = function () {};
+				});
+			});
+		}
+	}
+	renderItemSheet(sheet, html);
+}
+
 /** -------------------------------------------- */
 Hooks.on('renderActorSheet5e', renderActorSheet);
 Hooks.on('dnd5e.getActiveEffectContextOptions', AFXcontextOptions);
 if (game.modules.get('magic-items-2')?.active) {
-	Hooks.on('renderItemSheet', async (sheet, html) => {
-		const tab = html.find('.tab.magic-items');
-		if (tab.length) {
-			const item = sheet.item;
-			const linked = getFlag(item, 'isLinked');
-			if (linked && (!item.compendium || item.isEmbedded)) {
-				for (let i = 0; i < 20; i++) {
-					if (html.find('.magic-items-content').length) break;
-					await sleep(100);
-				}
-				tab.find('.spell-drag-content').remove();
-				const drop = sheet._dragDrop.filter((list) => list.dropSelector === '.tab.magic-items');
-				drop.forEach((drop) => {
-					Object.entries(drop.callbacks).forEach(([ev, fn]) => {
-						drop.callbacks[ev] = function () {};
-					});
-				});
-			}
-		}
-		renderItemSheet(sheet, html);
-	});
+	Hooks.on('renderItemSheet', magicItems2Hook);
+	Hooks.on('tidy5e-sheet.renderItemSheet', magicItems2Hook);
 } else {
 	Hooks.on('renderItemSheet', renderItemSheet);
+	Hooks.on('tidy5e-sheet.renderItemSheet', renderItemSheet);
 }
 

@@ -1,5 +1,5 @@
-import { findCompendiumFromItemID } from './packs.js';
 import { MODULE_ID } from './settings.js';
+import { fromCompendiumSource } from './packs.js';
 
 /**
  * Retrieves the value of a flag from an item.
@@ -35,9 +35,9 @@ function preCreateItem(item) {
 	const itemFlags = isCompendium ? baseFlags : item._source.flags['item-linking'] || baseFlags;
 	if (isCompendium === false && item.id) {
 		if (!itemFlags.isLinked && !itemFlags.baseItem) {
-			const compendium = findCompendiumFromItemID(item.id);
-			if (compendium) {
-				itemFlags.baseItem = 'Compendium.' + compendium.metadata.id + '.Item.' + item.id;
+			const compendiumSource = fromCompendiumSource(item);
+			if (compendiumSource) {
+				itemFlags.baseItem = item.getFlag('core', 'sourceId') || null;
 				itemFlags.isLinked = true;
 			}
 		}
@@ -47,4 +47,3 @@ function preCreateItem(item) {
 
 /** -------------------------------------------- */
 Hooks.on('preCreateItem', preCreateItem);
-

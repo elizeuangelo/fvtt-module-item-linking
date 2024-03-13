@@ -4,7 +4,7 @@
         <label>{{ localize "FOLDER.ExportDestination" }}</label>
         <div class="form-fields">
             <select name="pack">
-                {{selectOptions packs selected=pack}}
+                {{selectOptions packs}}
             </select>
         </div>
     </div>
@@ -12,7 +12,7 @@
         <label>{{ localize "DOCUMENT.Folder" }}</label>
         <div class="form-fields">
             <select name="folder" {{#unless hasFolders}}disabled{{/unless}}>
-                {{selectOptions folders nameAttr="id" labelAttr="name" selected=folder blank=""}}
+                {{selectOptions folders nameAttr="id" labelAttr="name" blank=""}}
             </select>
         </div>
     </div>
@@ -20,11 +20,11 @@
         <legend>Move Options</legend>
         <div class="form-group">
             <label>Keep Document ID?</label>
-            <input type="checkbox" name="keepId" {{ checked keepId }}/>
+            <input type="checkbox" name="keepId" checked />
         </div>
         <div class="form-group">
             <label>Relink Derived Items</label>
-            <input type="checkbox" name="relink" {{ checked relink }}/>
+            <input type="checkbox" name="relink" checked />
         </div>
     </fieldset>
 </form>

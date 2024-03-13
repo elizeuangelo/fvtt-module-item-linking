@@ -1,3 +1,5 @@
+import { ProcessingDialog } from './processingDialog.js';
+
 /**
  * Relinks Actor to Compendiums Application.
  * @returns {Promise<void>} A promise that resolves when the relinking process is complete.
@@ -9,11 +11,15 @@ export async function relinkActorsCompendiumApp() {
 		return ui.notifications.warn(game.i18n.format('FOLDER.ExportWarningNone', { type: this.type }));
 	}
 	const folders = game.folders.filter((f) => f.type === 'Actor');
+	const types = game.documentTypes.Item.filter((t) => t !== CONST.BASE_DOCUMENT_TYPE);
 	const content = await renderTemplate('modules/item-linking/templates/relink-actors.hbs', {
 		packs: packs.map((p) => ({ id: p.metadata.id, name: p.metadata.label })),
 		folders,
+		types: Object.fromEntries(
+			types.map((t) => [t, game.i18n.localize(CONFIG.Item.typeLabels[t])]).sort((a, b) => a[1].localeCompare(b[1]))
+		),
 	});
-	new Dialog(
+	const dialog = new Dialog(
 		{
 			title: `Relink Actors Links to Compendiums`,
 			content,
@@ -24,34 +30,46 @@ export async function relinkActorsCompendiumApp() {
 				yes: {
 					icon: '<i class="fas fa-magnifying-glass"></i>',
 					label: game.i18n.localize('Search'),
-					callback: (html) => {
+					callback: async (html, event, processor) => {
 						const form = html[0].querySelector('form');
 						const data = new FormDataExtended(form);
-						if (form.checkValidity() === false) {
+						if (form.reportValidity() === false) {
 							throw new Error(game.i18n.localize('You must select at least one pack and one folder'));
 						}
-						searchInventory(data.object);
+						try {
+							processor.process('Searching...');
+							await searchInventory(data.object, processor);
+						} catch (err) {
+							ui.notifications.error(err);
+						} finally {
+							processor.dialog.close();
+						}
 					},
 				},
 			},
 		},
 		{ classes: ['dialog', 'item-linking-dialog'], width: 500 }
-	).render(true);
+	);
+	new ProcessingDialog(dialog);
+	dialog.render(true);
 }
 
 /**
  * Searches the inventory for linked items and renders a dialog with the results.
  * @param {Object} data - The data object containing information about the inventory search.
  * @param {boolean} data.subfolders - Flag indicating whether to include subfolders in the search.
+ * @param {boolean} data.hideUnmatched - Flag indicating whether to hide unmatched items.
+ * @param {string} data.typeFilter - The type of the item to search for.
  * @param {string[]} data.packs - An array of pack names to search for items.
  * @param {string[]} data.folders - An array of folder IDs to search for items.
  * @returns {Promise<void>} - A promise that resolves when the inventory search is complete.
  */
-async function searchInventory(data) {
+async function searchInventory(data, processor) {
 	const subfolders = data.subfolders;
 	const packs = data.packs.map((p) => game.packs.get(p));
 	const folders = [];
 	const packsItems = (await Promise.all(packs.map((p) => p.getDocuments()))).flat();
+	processor.label = `Searching... found ${packsItems.length} items in ${packs.length} packs`;
 	for (const id of data.folders) {
 		const folder = game.folders.get(id);
 		if (!folder) continue;
@@ -62,18 +80,23 @@ async function searchInventory(data) {
 	}
 	const entries = [];
 	const actors = game.actors.filter((a) => folders.includes(a.folder));
+	processor.label = `Searching... found ${actors.length} actors in ${folders.length} folders`;
 	for (const actor of actors) {
 		for (const item of actor.items) {
+			if (data.typeFilter && item.type !== data.typeFilter) continue;
 			const flags = item.flags['item-linking'];
 			if (!flags) continue;
 			const baseItem = flags.baseItem ? await fromUuid(flags.baseItem) : null;
 			const isLinked = flags.isLinked ?? false;
 			if (isLinked && baseItem) continue;
-			const similarItems = await findSimilarItemsInCompendiums(item.name, item.type, packsItems);
+			const similarItems = findSimilarItemsInCompendiums(item.name, item.type, packsItems);
+			if (similarItems.length === 0 && data.hideUnmatched) continue;
 			entries.push({ label: CONFIG.Item.typeLabels[item.type], actor, item, similarItems, baseItem, isLinked });
 		}
 	}
-	const content = await renderTemplate('modules/item-linking/templates/relink-inventory.hbs', { entries });
+	const content = await renderTemplate('modules/item-linking/templates/relink-inventory.hbs', {
+		entries,
+	});
 	function addEventListeners(html) {
 		html.find('.btn-update').on('click', async (event) => {
 			const button = event.currentTarget;
@@ -96,10 +119,10 @@ async function searchInventory(data) {
 			const select = event.currentTarget;
 			const row = select.closest('tr');
 			const compendiumItemEl = row.querySelector('.compendium-item');
-			const resyncItemEl = row.querySelector('.resync-item');
+			//const resyncItemEl = row.querySelector('.resync-item');
 			compendiumItemEl.dataset.uuid = select.value;
-			compendiumItemEl.classList.toggle('btn-disabled', !select.value);
-			resyncItemEl.classList.toggle('btn-disabled', !select.value);
+			//compendiumItemEl.classList.toggle('btn-disabled', !select.value);
+			//resyncItemEl.classList.toggle('btn-disabled', !select.value);
 		});
 		html.find('[data-action="render"]').on('click', async (event) => {
 			const button = event.currentTarget;
@@ -130,7 +153,7 @@ async function searchInventory(data) {
  * @param {Array} packsItems - An array of items from the packs.
  * @returns {Array} - An array of objects containing the name and UUID of the found items.
  */
-async function findSimilarItemsInCompendiums(itemName, itemType, packsItems) {
+function findSimilarItemsInCompendiums(itemName, itemType, packsItems) {
 	const rows = [];
 	const filteredItems = packsItems.filter((i) => i.name === itemName && i.type === itemType);
 	for (const item of filteredItems) {

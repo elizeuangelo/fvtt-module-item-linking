@@ -31,15 +31,14 @@
                 <td>{{similarItems.length}}</td>
                 <td>
                     <select name="similar-select-{{item.id}}">
-                        <option value=""></option>
                         {{#each similarItems}}
                             <option value="{{uuid}}">{{name}}</option>
                         {{/each}}
                     </select>
                 </td>
                 <td>
-                    <i class="fas fa-atlas compendium-item btn-disabled" data-action="render" data-uuid=""></i>
-                    <i class="fas fa-sync-alt resync-item btn-update btn-disabled" data-uuid="{{item.uuid}}" data-tooltip="Update"></i>
+                    <i class="fas fa-atlas compendium-item {{#unless similarItems.length}}btn-disabled{{/unless}}" data-action="render" data-uuid="{{similarItems.0.uuid}}"></i>
+                    <i class="fas fa-sync-alt resync-item btn-update {{#unless similarItems.length}}btn-disabled{{/unless}}" data-uuid="{{item.uuid}}" data-tooltip="Update"></i>
                 </td>
             </tr>
             {{/each}}
