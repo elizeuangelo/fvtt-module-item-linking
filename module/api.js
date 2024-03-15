@@ -3,10 +3,21 @@ import Logger from './lib/Logger.js';
 import { RetrieveHelpers } from './lib/retrieve-helpers.js';
 
 const API = {
+  /**
+   * Method for check if the item is a primary item
+   * @param {string|Item} itemToCheck the item or the item reference like id, uuid, ecc. to check
+   * @returns {boolean} if is a primary item or not
+   */
 	isPrimaryItem(itemToCheck) {
 		const itemToCheckTmp = RetrieveHelpers.getItemSync(itemToCheck);
 		return isPrimaryItem(itemToCheckTmp);
 	},
+
+  /**
+   * Method for check if the item is not linked (ignored base item, no link)
+   * @param {string|Item} itemToCheck the item or the item reference like id, uuid, ecc. to check
+   * @returns {boolean} if is not linked or not
+   */
 	isItemNotLinked(itemToCheck) {
 		const itemToCheckTmp = RetrieveHelpers.getItemSync(itemToCheck);
 		const isLinked = getProperty(itemToCheckTmp, `flags.item-linking.isLinked`);
@@ -15,6 +26,12 @@ const API = {
 		}
 		return false;
 	},
+
+  /**
+   * Method for check if the item is linked (yes base item, yes link)
+   * @param {string|Item} itemToCheck the item or the item reference like id, uuid, ecc. to check
+   * @returns {boolean} if is linked or not
+   */
 	isItemLinked(itemToCheck) {
 		const itemToCheckTmp = RetrieveHelpers.getItemSync(itemToCheck);
 		const hasBaseItem = getProperty(itemToCheckTmp, `flags.item-linking.baseItem`);
@@ -24,6 +41,12 @@ const API = {
 		}
 		return false;
 	},
+
+  /**
+   * Method for check if the item is with a broken link (no base item, yes link)
+   * @param {string|Item} itemToCheck the item or the item reference like id, uuid, ecc. to check
+   * @returns {boolean} if is with a broken link or not
+   */
 	isItemBrokenLink(itemToCheck) {
 		const itemToCheckTmp = RetrieveHelpers.getItemSync(itemToCheck);
 		const hasBaseItem = getProperty(itemToCheckTmp, `flags.item-linking.baseItem`);
@@ -33,6 +56,12 @@ const API = {
 		}
 		return false;
 	},
+
+  /**
+   * Method for check if the item is unlinked (no base item, no link)
+   * @param {string|Item} itemToCheck the item or the item reference like id, uuid, ecc. to check
+   * @returns {boolean} if is unlinked
+   */
 	isItemUnlinked(itemToCheck) {
 		const itemToCheckTmp = RetrieveHelpers.getItemSync(itemToCheck);
 		const hasBaseItem = getProperty(itemToCheckTmp, `flags.item-linking.baseItem`);
@@ -42,49 +71,75 @@ const API = {
 		}
 		return false;
 	},
+
+  /**
+   * Method for retrieve the linked item if present
+   * @param {string|Item} itemToCheck the item or the item reference like id, uuid, ecc. to check
+   * @returns {Item|null} the item linked
+   */
 	retrieveLinkedItem(itemToCheck) {
 		const itemToCheckTmp = RetrieveHelpers.getItemSync(itemToCheck);
 		if (!this.isItemLinked(itemToCheckTmp)) {
-			Logger.warn(`The item ${itemToCheckTmp.name}|${itemToCheckTmp.uuid} is not linked`);
+			Logger.warn(`retrieveLinkedItem | The item ${itemToCheckTmp.name}|${itemToCheckTmp.uuid} is not linked`, true);
 			return;
 		}
-		const baseItemUuid = getProperty(itemToCheckTmp, `flags.item-linking.baseItem`);
+		const baseItemUuid = getProperty(itemToCheckTmp, `flags.item-linking.baseItem`, true);
 		if (!baseItemUuid) {
-			Logger.warn(`No baseItemUuid is been found for ${itemToCheckTmp.name}|${itemToCheckTmp.uuid}`);
+			Logger.warn(`retrieveLinkedItem | No baseItemUuid is been found for ${itemToCheckTmp.name}|${itemToCheckTmp.uuid}`);
 			return;
 		}
-		const baseItem = fromUuidSync(baseItemUuid);
+		const baseItem = RetrieveHelpers.getItemSync(baseItemUuid);
 		if (!baseItem) {
-			Logger.warn(`No baseItem is been found for ${itemToCheckTmp.name}|${itemToCheckTmp.uuid}`);
+			Logger.warn(`retrieveLinkedItem | No baseItem is been found for ${itemToCheckTmp.name}|${itemToCheckTmp.uuid}`, true);
 			return;
 		}
 		return baseItem;
 	},
+
+  /**
+   * Method for set a linked item to another item
+   * @param {string|Item} itemToCheck the item or the item reference like id, uuid, ecc. to check
+   * @param {string|item} itemBaseReference
+   * @returns {Promise<Void>}
+   */
 	async setLinkedItem(itemToCheck, itemBaseReference) {
 		if (!itemBaseReference) {
-			Logger.warn(`The 'baseItemReference' is null or empty`);
+			Logger.warn(`setLinkedItem | The 'baseItemReference' is null or empty`, true);
 			return;
 		}
-		let itemToCheckTmp = await RetrieveHelpers.getItemAsync(itemToCheck);
+		const itemToCheckTmp = await RetrieveHelpers.getItemAsync(itemToCheck);
 		if (this.isItemLinked(itemToCheckTmp)) {
+			Logger.warn(`setLinkedItem | The 'itemToCheck' is not linked`, true);
 			return itemToCheckTmp;
 		}
 		const baseItem = await RetrieveHelpers.getItemAsync(itemBaseReference);
-		const uuidToSet =
+		if (baseItem) {
+			Logger.warn(`setLinkedItem | No 'baseItem' is been found for ${itemBaseReference}`);
+			return;
+		}
+		const baseItemUuid =
 			this.retrieveLinkedItem(baseItem)?.uuid ?? getProperty(baseItem, `flags.core.sourceId`) ?? baseItem.uuid;
-		if (!uuidToSet) {
-			Logger.warn(`The 'uuidToSet' is null or empty`);
+		if (!baseItemUuid) {
+			Logger.warn(`setLinkedItem | The 'uuidToSet' is null or empty`, true);
 			return;
 		}
-		const baseItemUuid = getProperty(itemToCheckTmp, `flags.item-linking.baseItem`);
-		if (baseItemUuid) {
-			Logger.warn(`No baseItemUuid is been found for ${itemToCheckTmp.name}|${itemToCheckTmp.uuid}`);
+		const itemBaseTmp = await RetrieveHelpers.getItemAsync(baseItemUuid);
+		if(!itemBaseTmp) {
+			Logger.warn(`setLinkedItem | The 'baseItem' is null or empty`, true);
 			return;
 		}
-		await itemToCheckTmp.setFlag('item-linking', 'baseItem', uuidToSet);
+
+		await itemToCheckTmp.setFlag('item-linking', 'baseItem', baseItemUuid);
 		await itemToCheckTmp.setFlag('item-linking', 'isLinked', true);
 		return itemToCheckTmp;
 	},
+
+  /**
+   * Method to update a item on a actor with the linked item
+   * @param {string|Item} itemToCheck the item to check
+   * @param {boolean=false} force should the original item deleted from the actor ?
+   * @returns {Promise<Void>}
+   */
 	async replaceItemWithLinkedItemOnActor(itemToCheck, force = false) {
 		let itemToCheckTmp = await RetrieveHelpers.getItemAsync(itemToCheck);
 		if (this.isItemLinked(itemToCheckTmp)) {
@@ -112,6 +167,19 @@ const API = {
 			Logger.warn(`The item '${itemToCheckTmp?.name}' is already linked`);
 		}
 	},
+
+  /**
+   * A "Save Time" method for attempting to link through certain filters
+   * character objects to objects in a compendium list, useful when transferring
+   * an actor from one world to another
+   *
+   * @param {Actor|string} actor The reference to the actor entity, can be a Actor or a Actor id, uuid, name
+   * @param {string|string[]} compendiumsFolderToCheck A list of folder names in the compendium directory from which to retrieve collections
+   * @param {Object} options
+   * @param {boolean} [options.onlyItems=true] Whether to automatically display the results in chat
+   * @param {string[]} [options.typesToFilter=[]] A list of types to filter e.g. ['weapon', 'equipment', 'consumable', 'tool', 'loot', 'spell', 'backpack', 'feat']
+   * @param {string} [options.compendiumForNoMatch=null]  Unmatched documents can be included in this compendium if present
+   */
 	async tryToUpdateActorWithLinkedDocumentsFromCompendiumFolder(actor, compendiumsFolderToCheck, options) {
 		if (!compendiumsFolderToCheck) {
 			Logger.warn(
@@ -132,6 +200,19 @@ const API = {
 		}
 		await this.tryToUpdateActorWithLinkedDocumentsFromCompendiums(actor, compendiumsFiltered, options);
 	},
+
+  /**
+   * A "Save Time" method for attempting to link through certain filters
+   * character objects to objects in a compendium list, useful when transferring
+   * an actor from one world to another
+   *
+   * @param {Actor|string} actor The reference to the actor entity, can be a Actor or a actor id, uuid, name
+   * @param {string|string[]} compendiumsToCheck A list of compendium collection references to the compendium collection entities, can be a CompendiumCollection or a CompendiumCollection id, uuid, name
+   * @param {Object} options
+   * @param {boolean} [options.onlyItems=true] Whether to automatically display the results in chat
+   * @param {string[]} [options.typesToFilter=[]] A list of types to filter e.g. ['weapon', 'equipment', 'consumable', 'tool', 'loot', 'spell', 'backpack', 'feat']
+   * @param {string} [options.compendiumForNoMatch=null] Unmatched documents can be included in this compendium if present
+   */
 	async tryToUpdateActorWithLinkedDocumentsFromCompendiums(actor, compendiumsToCheck, options) {
 		const actorToUpdate = await RetrieveHelpers.getActorAsync(actor, false);
 		if (!actorToUpdate) {
