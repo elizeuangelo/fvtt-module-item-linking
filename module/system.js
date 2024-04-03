@@ -4,7 +4,7 @@ import { MODULE_ID } from './settings.js';
 const KEEP_PROPERTIES = [];
 
 export function keepPropertiesOverride(itemData) {
-	if (!canOverride(itemData)) return KEEP;
+	if (!canOverride(itemData)) return KEEP_PROPERTIES;
 	const exceptions = itemData.flags?.[MODULE_ID]?.linkPropertyExceptions ?? '';
 	return [...KEEP_PROPERTIES, ...(exceptions !== '' ? exceptions.split(',') : [])];
 }
