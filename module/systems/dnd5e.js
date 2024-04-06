@@ -143,7 +143,7 @@ function renderItemSheet(sheet, html) {
 			const input = v.querySelector('input:not([value=""])');
 			const inputNotDisabled = v.querySelector('input:not([disabled])');
 			const selection = v.querySelector('select option[selected][value]:not([value=""])');
-			const selectionNotDisabled = v.querySelector('selection:not([disabled])');
+			const selectionNotDisabled = v.querySelector('select:not([disabled])');
 			const tag = v.querySelector('li.tag');
 			const color = v.querySelector('input[type=color]');
 			if (color && color.previousElementSibling?.disabled) return v.remove();
