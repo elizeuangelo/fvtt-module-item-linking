@@ -1,12 +1,17 @@
 import { canOverride } from './item-overrides.js';
-import { MODULE_ID } from './settings.js';
+import { MODULE_ID, getSetting } from './settings.js';
 
 const KEEP_PROPERTIES = [];
 
 export function keepPropertiesOverride(itemData) {
 	if (!canOverride(itemData)) return KEEP_PROPERTIES;
-	const exceptions = itemData.flags?.[MODULE_ID]?.linkPropertyExceptions ?? '';
-	return [...KEEP_PROPERTIES, ...(exceptions !== '' ? exceptions.split(',') : [])];
+	const itemExceptions = itemData.flags?.[MODULE_ID]?.linkPropertyExceptions ?? '';
+	const globalExceptions = getSetting('linkPropertyExceptions');
+	return [
+		...KEEP_PROPERTIES,
+		...(itemExceptions !== '' ? itemExceptions.split(',') : []),
+		...(globalExceptions !== '' ? globalExceptions.split(',') : []),
+	];
 }
 
 /**
