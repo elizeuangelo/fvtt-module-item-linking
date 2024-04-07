@@ -99,12 +99,14 @@ export function createChanges(itemData, baseItemData, ignoreEmbedded = true) {
  * @param {object} changes - The changes to be applied to the item.
  */
 function updateItem(item, changes) {
+	if (!changes.flags?.[MODULE_ID]) return;
+	if (item.sheet.constructor.name === 'Tidy5eKgarItemSheet') {
+		item.sheet.render(true);
+	}
 	if (!item.compendium) {
-		if (changes.flags?.[MODULE_ID]) {
-			Object.values(ui.windows).forEach((app) => {
-				if (app instanceof Compendium) app.render();
-			});
-		}
+		Object.values(ui.windows).forEach((app) => {
+			if (app instanceof Compendium) app.render();
+		});
 		return;
 	}
 }

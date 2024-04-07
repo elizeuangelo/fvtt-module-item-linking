@@ -116,6 +116,7 @@ function renderItemSheet(sheet, html) {
 			(element.name && !rgx.exec(element.name)) ||
 			KEEP.includes(element.name) ||
 			(element.dataset.target && KEEP.includes(element.dataset.target)) ||
+			(element.dataset.tidyField && KEEP.includes(element.dataset.tidyField)) ||
 			element.hasAttribute('data-link-keep') ||
 			(element.type === 'color' && element.previousElementSibling?.disabled)
 		);
@@ -239,6 +240,6 @@ if (game.modules.get('magic-items-2')?.active) {
 	Hooks.on('tidy5e-sheet.renderItemSheet', magicItems2Hook);
 } else {
 	Hooks.on('renderItemSheet', renderItemSheet);
-	Hooks.on('tidy5e-sheet.renderItemSheet', renderItemSheet);
+	//Hooks.on('tidy5e-sheet.renderItemSheet', renderItemSheet);
 }
 
