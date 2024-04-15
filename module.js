@@ -6,6 +6,7 @@ import API from './module/api.js';
 import './module/compendium.js';
 import './module/actor.js';
 import './module/item-overrides.js';
+import './module/core.js';
 
 Hooks.once('setup', () => {
 	import('./module/embedded.js');
