@@ -4,9 +4,11 @@ import { MODULE_ID, getSetting } from './settings.js';
 const KEEP_PROPERTIES = [];
 
 export function keepPropertiesOverride(itemData) {
-	if (!canOverride(itemData)) return KEEP_PROPERTIES;
-	const itemExceptions = itemData.flags?.[MODULE_ID]?.linkPropertyExceptions ?? '';
 	const globalExceptions = getSetting('linkPropertyExceptions');
+	if (!canOverride(itemData)) {
+		return [...KEEP_PROPERTIES, ...(globalExceptions !== '' ? globalExceptions.split(',') : [])];
+	}
+	const itemExceptions = itemData.flags?.[MODULE_ID]?.linkPropertyExceptions ?? '';
 	return [
 		...KEEP_PROPERTIES,
 		...(itemExceptions !== '' ? itemExceptions.split(',') : []),
