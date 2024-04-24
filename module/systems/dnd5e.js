@@ -141,10 +141,16 @@ function renderItemSheet(sheet, html) {
 			if (weaponProperties[0]?.childElementCount < 2) weaponProperties.remove();
 		}
 		html[0].querySelectorAll('.form-group:not(:has(button:only-child))').forEach((v, idx) => {
-			const input = v.querySelector('input:not([value=""])');
-			const inputNotDisabled = v.querySelector('input:not([disabled])');
-			const selection = v.querySelector('select option[selected][value]:not([value=""])');
-			const selectionNotDisabled = v.querySelector('select:not([disabled])');
+			const validInput = [...v.querySelectorAll('input,select')].find((el) => {
+				if (!el.disabled) {
+					if (el.nodeName === 'INPUT' && el.name === 'system.uses.value') return false;
+					return true;
+				}
+				if (el.value === '') return false;
+				if (el.nodeName === 'SELECT' && ['spell', 'self'].includes(el.value)) return false;
+				return true;
+			});
+
 			const tag = v.querySelector('li.tag');
 			const color = v.querySelector('input[type=color]');
 			if (color && color.previousElementSibling?.disabled) return v.remove();
@@ -153,14 +159,7 @@ function renderItemSheet(sheet, html) {
 				if (textarea.disabled && !textarea.textContent) v.remove();
 				return;
 			}
-			if (
-				input ||
-				(selection && !['spell', 'self'].includes(selection.value)) ||
-				tag ||
-				(inputNotDisabled && inputNotDisabled.name !== 'system.uses.value') ||
-				selectionNotDisabled
-			)
-				return;
+			if (validInput || tag) return;
 			v.remove();
 		});
 		const dmgHeader = html.find('.damage-header')[0];
