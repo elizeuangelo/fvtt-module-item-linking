@@ -17,9 +17,9 @@ Hooks.once('setup', () => {
 Hooks.once('ready', async () => {
 	Logger.log('Successfully Initialized');
 	if (checkFixes()) {
-		log(`Applying fixes since ${getSetting('update')}...`);
+		Logger.log(`Applying fixes since ${getSetting('update')}...`);
 		await applyFixes();
-		log(`All fixes applied`);
+		Logger.log(`All fixes applied`);
 	}
 	const derivations = findDerived();
 	Logger.log(`${Object.keys(derivations).length} data links derived`);
