@@ -100,8 +100,8 @@ export function createChanges(itemData, baseItemData, ignoreEmbedded = true) {
  */
 function updateItem(item, changes) {
 	if (!changes.flags?.[MODULE_ID]) return;
-	if (item.sheet.constructor.name === 'Tidy5eKgarItemSheet') {
-		item.sheet.render(true);
+	if (item.sheet && item.sheet.constructor.name === 'Tidy5eKgarItemSheet') {
+		if (item.sheet.rendered) item.sheet.render(true);
 	}
 	if (!item.compendium) {
 		Object.values(ui.windows).forEach((app) => {

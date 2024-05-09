@@ -93,7 +93,7 @@ export async function moveToAnotherCompendium(li, html) {
 				yes: {
 					icon: '<i class="fas fa-check"></i>',
 					label: game.i18n.localize('FOLDER.ExportTitle'),
-					callback: async (html, event, processor) => {
+					callback: async (html, _event, processor) => {
 						const form = html[0].querySelector('form');
 						try {
 							processor.process('Moving item...');
@@ -234,7 +234,7 @@ export async function moveFolderToAnotherCompendium(header, html) {
 				yes: {
 					icon: '<i class="fas fa-check"></i>',
 					label: game.i18n.localize('FOLDER.ExportTitle'),
-					callback: async (html, event, processor) => {
+					callback: async (html, _event, processor) => {
 						const form = html[0].querySelector('form');
 						try {
 							processor.process('Moving folder...');
