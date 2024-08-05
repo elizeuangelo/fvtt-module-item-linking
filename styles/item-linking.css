@@ -35,7 +35,9 @@
 	border-radius: 10px;
 	filter: drop-shadow(2px 4px 6px black);
 }
-
+.item-linking-dialog .dialog-buttons {
+	flex: 0;
+}
 .item-linking-dialog select[multiple] option:checked {
 	background-color: var(--color-border-dark-tertiary); /* Change to your preferred color */
 	color: var(--color-text-light-0); /* Change text color if needed */

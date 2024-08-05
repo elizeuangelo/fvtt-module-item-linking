@@ -5,7 +5,6 @@ import { ProcessingDialog } from './processingDialog.js';
  * @returns {Promise<void>} A promise that resolves when the relinking process is complete.
  */
 export async function relinkActorsCompendiumApp() {
-	function addListeners(html) {}
 	const packs = game.packs.filter((p) => p.documentName === 'Item');
 	if (!packs.length) {
 		return ui.notifications.warn(game.i18n.format('FOLDER.ExportWarningNone', { type: this.type }));
@@ -23,7 +22,6 @@ export async function relinkActorsCompendiumApp() {
 		{
 			title: `Relink Actors Links to Compendiums`,
 			content,
-			render: (html) => addListeners(html),
 			default: 'yes',
 			close: () => null,
 			buttons: {
@@ -131,19 +129,65 @@ async function searchInventory(data, processor) {
 			item?.sheet?.render(true);
 		});
 	}
-	new Dialog(
+	const dialog = new Dialog(
 		{
 			title: 'Inventory Check',
 			content,
+			close: () => null,
+			default: 'ok',
 			buttons: {
 				ok: {
 					label: 'Close',
+					callback: (_html, _event, processor) => processor.dialog.close(),
+				},
+				linkall: {
+					label: 'Link All Single Matches',
+					icon: '<i class="fas fa-link"></i>',
+					callback: async (html, _event, processor) => {
+						const buttons = html.find('.btn-update');
+						const links = [];
+						for (const button of buttons) {
+							const row = button.closest('tr');
+							const matches = row.querySelectorAll('select option').length;
+							if (matches === 1) {
+								links.push(button);
+							}
+						}
+						if (links.length === 0) {
+							ui.notifications.info('No single matches found to link.');
+							return;
+						}
+						processor.process(`Updating ${links.length} links...`);
+						try {
+							for (const button of links) {
+								const row = button.closest('tr');
+								const select = row.querySelector('select');
+								const selectedUuid = select.value;
+								if (selectedUuid) {
+									const item = await fromUuid(button.dataset.uuid);
+									item.update({
+										'flags.item-linking.baseItem': selectedUuid,
+										'flags.item-linking.isLinked': true,
+									});
+									button.classList.add('btn-disabled');
+									select.disabled = true;
+									const dot = row.querySelector('.dot');
+									if (dot) dot.classList.add('green');
+								}
+							}
+						} finally {
+							processor.restart();
+						}
+					},
 				},
 			},
 			render: (html) => addEventListeners(html),
 		},
 		{ classes: ['dialog', 'item-linking-dialog'], width: 800, resizable: true }
-	).render(true);
+	);
+	new ProcessingDialog(dialog, 'linkall');
+	dialog.render(true);
+	return dialog;
 }
 
 /**

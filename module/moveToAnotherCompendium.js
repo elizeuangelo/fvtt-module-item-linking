@@ -68,7 +68,7 @@ export async function moveToAnotherCompendium(li, html) {
 			},
 		});
 	}
-	const pack = game.packs.get(html.data().pack);
+	const pack = game.packs.get(html.metadata.id);
 	const item = await pack.getDocument(li[0].dataset.documentId);
 	const packs = game.packs.filter((p) => p.documentName === 'Item' && !p.locked && p !== pack);
 	if (!packs.length) {
@@ -209,7 +209,7 @@ export async function moveFolderToAnotherCompendium(header, html) {
 			},
 		});
 	}
-	const pack = game.packs.get(html.data().pack);
+	const pack = game.packs.get(html.metadata.id);
 	const folder = await pack.folders.get(header[0].parentElement.dataset.folderId);
 	const packs = game.packs.filter((p) => p.documentName === 'Item' && !p.locked && p !== pack);
 	if (!packs.length) {

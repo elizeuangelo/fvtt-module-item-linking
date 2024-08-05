@@ -10,7 +10,7 @@ export function deletionKeys(original, other) {
 			obj['-=' + key] = null;
 			return obj;
 		}
-		const t0 = getType(original[key]);
+		const t0 = foundry.utils.getType(original[key]);
 		if (t0 !== 'Object') return obj;
 		const inner = deletionKeys(original[key], other[key]);
 		if (Object.keys(inner).length) obj[key] = inner;

@@ -23,7 +23,7 @@ async function create(data, context) {
 			const baseItem = await fromUuid(itemData.flags[MODULE_ID].baseItem);
 			if (!baseItem) continue;
 			const changes = createChanges(itemData, baseItem._source, false);
-			mergeObject(itemData, changes);
+			foundry.utils.mergeObject(itemData, changes);
 			if (getSetting('enforceActorsFXs')) {
 				for (const collection of Object.values(CONFIG.Item.documentClass.metadata.embedded)) {
 					if (!(collection in data)) continue;

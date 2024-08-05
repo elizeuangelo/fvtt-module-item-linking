@@ -20,11 +20,19 @@ export class ProcessingDialog {
 		this.dialog.element.find('button').prop('disabled', true);
 	}
 
+	#enableButtons() {
+		this.dialog.element.find('button').prop('disabled', false);
+	}
+
 	/**
 	 * Disables the close button in the dialog header.
 	 */
 	#disableCloseButton() {
-		this.dialog.element.find('a.header-button').remove();
+		this.dialog.element.find('a.header-button').prop('disabled', true);
+	}
+
+	#enableCloseButton() {
+		this.dialog.element.find('a.header-button').prop('disabled', false);
 	}
 
 	/**
@@ -60,10 +68,25 @@ export class ProcessingDialog {
 	 * @param {string} label - The label to process.
 	 */
 	process(label) {
+		if (!this.#originalIcon) this.#originalIcon = this.icon;
+		if (!this.#originalLabel) this.#originalLabel = this.label;
 		this.#disableButtons();
 		this.#disableCloseButton();
 		this.icon = 'fa-solid fa-spinner fa-spin-pulse';
 		if (label) this.label = label;
+	}
+
+	#originalIcon = null;
+	#originalLabel = null;
+
+	/**
+	 * Restarts the button to its original state.
+	 */
+	restart() {
+		this.icon = this.#originalIcon;
+		this.label = this.#originalLabel;
+		this.#enableButtons();
+		this.#enableCloseButton();
 	}
 
 	/**

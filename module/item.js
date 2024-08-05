@@ -64,7 +64,7 @@ function removeKeepProperties(changes, keys) {
 		const ps = key.split('.');
 		let target = changes;
 		ps.forEach((p, idx) => {
-			const t = getType(target);
+			const t = foundry.utils.getType(target);
 			if (!(t === 'Object' || t === 'Array')) return;
 			if (p in target) {
 				if (idx + 1 === ps.length) delete target[p];
@@ -90,7 +90,7 @@ export function createChanges(itemData, baseItemData, ignoreEmbedded = true) {
 	);
 	const diff = foundry.utils.diffObject(source, baseItemSource);
 	const deletions = deletionKeys(source, baseItemSource);
-	return mergeObject(deletions, diff);
+	return foundry.utils.mergeObject(deletions, diff);
 }
 
 /**
@@ -140,7 +140,7 @@ function preUpdateItem(item, changes, options) {
 						);
 					}
 					const addChanges = baseItem ? createChanges(data, baseItem._source) : {};
-					mergeObject(changes, addChanges);
+					foundry.utils.mergeObject(changes, addChanges);
 					const exceptions = getSetting('linkPropertyExceptions').split(',');
 					Object.entries(CONFIG.Item.documentClass.metadata.embedded).forEach(([collectionName, collection]) => {
 						if (exceptions.includes(collection)) return;
