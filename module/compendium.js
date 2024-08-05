@@ -45,7 +45,7 @@ function entryContextMenu(html, entryOptions) {
 			name: 'Delete All Linked Items',
 			icon: '<i class="fas fa-link-slash"></i>',
 			callback: (li) => {
-				const pack = html.data().pack;
+				const pack = html.metadata.id;
 				const freq = findDerived();
 				const uuid = 'Compendium.' + pack + '.Item.' + li[0].dataset.documentId;
 				const items = freq[uuid];

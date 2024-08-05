@@ -21,7 +21,7 @@ export async function findItems(li, html) {
 			if (deleted) el.closest('tr').classList.add('disabled');
 		});
 	}
-	const pack = html.data().pack;
+	const pack = html.metadata.id;
 	const freq = findDerived();
 	const uuid = 'Compendium.' + pack + '.Item.' + li[0].dataset.documentId;
 	const derivations = freq[uuid];
