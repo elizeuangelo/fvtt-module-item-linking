@@ -12,8 +12,8 @@
 	"esmodules": ["module.js"],
 	"styles": ["styles/item-linking.css"],
 	"compatibility": {
-		"minimum": "11",
-		"verified": "11.315"
+		"minimum": 12,
+		"verified": "12.330"
 	},
 	"url": "https://github.com/elizeuangelo/fvtt-module-item-linking/",
 	"manifest": "https://github.com/elizeuangelo/fvtt-module-item-linking/releases/latest/download/module.json",
@@ -31,3 +31,4 @@
 		}
 	]
 }
+

@@ -16,13 +16,13 @@ export const KEEP = [
 	'system.proficient',
 	'system.identified',
 	'system.equipped',
-	'system.attunement',
 	'system.hp.value',
 	'system.hp.conditions',
 	'system.isOriginalClass',
 	'system.skills.value',
 	'system.preparation.mode',
 	'system.preparation.prepared',
+	'system.attuned',
 ];
 
 function createOptionsFromPack(pack, type, selected) {

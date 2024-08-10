@@ -141,7 +141,7 @@ function preUpdateItem(item, changes, options) {
 					}
 					const addChanges = baseItem ? createChanges(data, baseItem._source) : {};
 					foundry.utils.mergeObject(changes, addChanges);
-					const exceptions = getSetting('linkPropertyExceptions').split(',');
+					/* const exceptions = getSetting('linkPropertyExceptions').split(',');
 					Object.entries(CONFIG.Item.documentClass.metadata.embedded).forEach(([collectionName, collection]) => {
 						if (exceptions.includes(collection)) return;
 						const itemIds = item._source[collection].map((fx) => fx._id);
@@ -175,11 +175,11 @@ function preUpdateItem(item, changes, options) {
 								item.parent.deleteEmbeddedDocuments(collectionName, deleteIds);
 							}
 						}
-					});
+					}); */
 					if (Object.keys(changes).length === 0) return;
 					item.update(changes, { linkedUpdate: true });
 				})
-				.catch((er) => {
+				.catch(() => {
 					item.update(changes, { linkedUpdate: true });
 				});
 			const srcFlags = item._source.flags['item-linking'];
