@@ -37,7 +37,7 @@ function preCreateItem(item) {
 		if (!itemFlags.isLinked && !itemFlags.baseItem) {
 			const compendiumSource = fromCompendiumSource(item);
 			if (compendiumSource) {
-				itemFlags.baseItem = item._stats.compendiumSource ?? item.flags.core?.sourceId ?? null;
+				itemFlags.baseItem = item._stats?.compendiumSource ?? item.flags.core?.sourceId ?? null;
 				itemFlags.isLinked = true;
 			}
 		}

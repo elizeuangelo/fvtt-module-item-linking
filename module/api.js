@@ -123,7 +123,10 @@ const API = {
 			return;
 		}
 		const baseItemUuid =
-			this.retrieveLinkedItem(baseItem)?.uuid ?? getProperty(baseItem, `flags.core.sourceId`) ?? baseItem.uuid;
+			this.retrieveLinkedItem(baseItem)?.uuid ??
+			getProperty(baseItem, `_stats.compendiumSource`) ??
+			getProperty(baseItem, `flags.core.sourceId`) ??
+			baseItem.uuid;
 		if (!baseItemUuid) {
 			Logger.warn(`setLinkedItem | The 'uuidToSet' is null or empty`, true);
 			return;
