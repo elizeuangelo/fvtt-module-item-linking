@@ -138,7 +138,6 @@ async function searchInventory(data, processor) {
 			buttons: {
 				ok: {
 					label: 'Close',
-					callback: (_html, _event, processor) => processor.dialog.close(),
 				},
 				linkall: {
 					label: 'Link All Single Matches',
