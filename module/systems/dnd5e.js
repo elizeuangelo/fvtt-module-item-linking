@@ -23,6 +23,7 @@ export const KEEP = [
 	'system.preparation.mode',
 	'system.preparation.prepared',
 	'system.attuned',
+	'system.levels',
 ];
 
 function createOptionsFromPack(pack, type, selected) {
