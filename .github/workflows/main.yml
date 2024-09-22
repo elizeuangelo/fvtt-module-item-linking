@@ -31,7 +31,7 @@ jobs:
 
          # Zip Files
          - name: Zip files
-           run: zip -r item-linking * -x ".github/*" "assets/*" "*.ts" "README.md" "LICENSE" "tsconfig.json" ".editorconfig" "build.js"
+           run: zip -r item-linking * -x ".github/*" "assets/*" "*.ts" "README.md" "LICENSE" "tsconfig.json" ".editorconfig" "build.mjs"
 
          # Create a release for this specific version
          - name: Create Release
