@@ -31,7 +31,7 @@ async function create(data, context) {
 						const actorFxsIds = data[collection].map((fx) => fx._id);
 						const target = actorFxsIds.includes(fx._id)
 							? data[collection].find((x) => x._id === fx._id)
-							: deepClone(fx);
+							: foundry.utils.deepClone(fx);
 						if ('origin' in target) target.origin = `Actor.${data._id}.Item.${itemData._id}`;
 						if (!actorFxsIds.includes(fx._id)) {
 							data[collection].push(target);

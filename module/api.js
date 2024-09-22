@@ -20,7 +20,7 @@ const API = {
 	 */
 	isItemNotLinked(itemToCheck) {
 		const itemToCheckTmp = RetrieveHelpers.getItemSync(itemToCheck);
-		const isLinked = getProperty(itemToCheckTmp, `flags.item-linking.isLinked`);
+		const isLinked = foundry.utils.getProperty(itemToCheckTmp, `flags.item-linking.isLinked`);
 		if (!isLinked) {
 			return true;
 		}
@@ -34,8 +34,8 @@ const API = {
 	 */
 	isItemLinked(itemToCheck) {
 		const itemToCheckTmp = RetrieveHelpers.getItemSync(itemToCheck);
-		const hasBaseItem = getProperty(itemToCheckTmp, `flags.item-linking.baseItem`);
-		const isLinked = getProperty(itemToCheckTmp, `flags.item-linking.isLinked`);
+		const hasBaseItem = foundry.utils.getProperty(itemToCheckTmp, `flags.item-linking.baseItem`);
+		const isLinked = foundry.utils.getProperty(itemToCheckTmp, `flags.item-linking.isLinked`);
 		if (hasBaseItem && isLinked) {
 			return true;
 		}
@@ -49,8 +49,8 @@ const API = {
 	 */
 	isItemBrokenLink(itemToCheck) {
 		const itemToCheckTmp = RetrieveHelpers.getItemSync(itemToCheck);
-		const hasBaseItem = getProperty(itemToCheckTmp, `flags.item-linking.baseItem`);
-		const isLinked = getProperty(itemToCheckTmp, `flags.item-linking.isLinked`);
+		const hasBaseItem = foundry.utils.getProperty(itemToCheckTmp, `flags.item-linking.baseItem`);
+		const isLinked = foundry.utils.getProperty(itemToCheckTmp, `flags.item-linking.isLinked`);
 		if (!hasBaseItem && isLinked) {
 			return true;
 		}
@@ -64,8 +64,8 @@ const API = {
 	 */
 	isItemUnlinked(itemToCheck) {
 		const itemToCheckTmp = RetrieveHelpers.getItemSync(itemToCheck);
-		const hasBaseItem = getProperty(itemToCheckTmp, `flags.item-linking.baseItem`);
-		const isLinked = getProperty(itemToCheckTmp, `flags.item-linking.isLinked`);
+		const hasBaseItem = foundry.utils.getProperty(itemToCheckTmp, `flags.item-linking.baseItem`);
+		const isLinked = foundry.utils.getProperty(itemToCheckTmp, `flags.item-linking.isLinked`);
 		if (!hasBaseItem && !isLinked) {
 			return true;
 		}
@@ -83,7 +83,7 @@ const API = {
 			Logger.warn(`retrieveLinkedItem | The item ${itemToCheckTmp.name}|${itemToCheckTmp.uuid} is not linked`, true);
 			return;
 		}
-		const baseItemUuid = getProperty(itemToCheckTmp, `flags.item-linking.baseItem`, true);
+		const baseItemUuid = foundry.utils.getProperty(itemToCheckTmp, `flags.item-linking.baseItem`, true);
 		if (!baseItemUuid) {
 			Logger.warn(
 				`retrieveLinkedItem | No baseItemUuid is been found for ${itemToCheckTmp.name}|${itemToCheckTmp.uuid}`
@@ -124,8 +124,8 @@ const API = {
 		}
 		const baseItemUuid =
 			this.retrieveLinkedItem(baseItem)?.uuid ??
-			getProperty(baseItem, `_stats.compendiumSource`) ??
-			getProperty(baseItem, `flags.core.sourceId`) ??
+			foundry.utils.getProperty(baseItem, `_stats.compendiumSource`) ??
+			foundry.utils.getProperty(baseItem, `flags.core.sourceId`) ??
 			baseItem.uuid;
 		if (!baseItemUuid) {
 			Logger.warn(`setLinkedItem | The 'uuidToSet' is null or empty`, true);
@@ -275,10 +275,12 @@ const API = {
 			if (!typesToFilter.includes(itemTryToLink.type)) {
 				continue;
 			}
-			const alreadyLinked = getProperty(itemTryToLink, `flags.item-linking.isLinked`);
+			const alreadyLinked = foundry.utils.getProperty(itemTryToLink, `flags.item-linking.isLinked`);
 			if (alreadyLinked) {
 				documentsAlreadyLinked++;
-				const broken_link = !Boolean(await fromUuid(getProperty(itemTryToLink, `flags.item-linking.baseItem`)));
+				const broken_link = !Boolean(
+					await fromUuid(foundry.utils.getProperty(itemTryToLink, `flags.item-linking.baseItem`))
+				);
 				if (broken_link) {
 					documentsBroken++;
 				} else continue;

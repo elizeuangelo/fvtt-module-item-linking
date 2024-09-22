@@ -38,7 +38,7 @@ function preCreate(document, data, context) {
 	const derived = findDerived()[item.uuid];
 	const collectionName = document.constructor.metadata.name;
 	derived.forEach((derivation) => {
-		const new_data = deepClone(data);
+		const new_data = foundry.utils.deepClone(data);
 		new_data.origin = derivation.uuid;
 		derivation.createEmbeddedDocuments(collectionName, [new_data], { keepId: true });
 		if (getSetting('enforceActorsFXs') && isFirstItem(derivation)) {
@@ -65,7 +65,7 @@ function preUpdate(document, changes) {
 	const derived = findDerived()[item.uuid];
 	const collectionName = document.constructor.metadata.name;
 	derived.forEach((derivation) => {
-		const new_changes = deepClone(changes);
+		const new_changes = foundry.utils.deepClone(changes);
 		derivation.updateEmbeddedDocuments(collectionName, [new_changes]);
 		if (getSetting('enforceActorsFXs') && derivation.parent instanceof CONFIG.Actor.documentClass) {
 			const fx = derivation.parent.effects.get(changes._id);

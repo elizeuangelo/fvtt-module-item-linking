@@ -128,12 +128,16 @@ function preUpdateItem(item, changes, options) {
 		if (!item.compendium || item.isEmbedded) {
 			fromUuid(baseItemId)
 				.then((baseItem) => {
-					const data = deepClone(item._source);
+					const data = foundry.utils.deepClone(item._source);
 					if (changes.flags?.[MODULE_ID]?.overrideOwnerUser !== undefined) {
-						setProperty(data, `flags.${MODULE_ID}.overrideOwnerUser`, changes.flags[MODULE_ID].overrideOwnerUser);
+						foundry.utils.setProperty(
+							data,
+							`flags.${MODULE_ID}.overrideOwnerUser`,
+							changes.flags[MODULE_ID].overrideOwnerUser
+						);
 					}
 					if (changes.flags?.[MODULE_ID]?.linkPropertyExceptions !== undefined) {
-						setProperty(
+						foundry.utils.setProperty(
 							data,
 							`flags.${MODULE_ID}.linkPropertyExceptions`,
 							changes.flags[MODULE_ID].linkPropertyExceptions
@@ -192,26 +196,34 @@ function preUpdateItem(item, changes, options) {
 			}
 			return false;
 		}
-		setProperty(changes, `flags.${MODULE_ID}`, {
+		foundry.utils.setProperty(changes, `flags.${MODULE_ID}`, {
 			baseItem: null,
 			isLinked: false,
 		});
 	}
 	if (item.compendium && !item.isEmbedded) {
 		const derived = findDerived()[item.uuid];
-		const derived_changes = deepClone(changes);
+		const derived_changes = foundry.utils.deepClone(changes);
 		if (derived_changes.uses?.max === '') {
 			derived_changes.uses.value = null;
 		}
-		derived?.forEach((derivation) =>
+		derived?.forEach((derivation) => {
+			const advancement = foundry.utils.deepClone(item._source.system.advancement);
+			if (advancement) {
+				advancement.forEach((a) => {
+					const _id = a._id;
+					a.value = derivation.system.advancement.find((a) => a._id === _id)?.value ?? a.value;
+				});
+			}
 			derivation.update(
 				{
 					...createChanges(derivation._source, item._source),
 					...removeKeepProperties(derived_changes, getKeepProperties(true, derivation._source)),
+					...(advancement ? { 'system.advancement': advancement } : {}),
 				},
 				{ linkedUpdate: true }
-			)
-		);
+			);
+		});
 	}
 }
 

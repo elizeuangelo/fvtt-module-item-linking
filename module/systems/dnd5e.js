@@ -123,7 +123,7 @@ function renderItemSheet(sheet, html) {
 			(element.type === 'color' && element.previousElementSibling?.disabled)
 		);
 
-	html.find('input,select,textarea,[data-target]').filter(filter).attr('disabled', '');
+	html.find('input,select,textarea,[data-target],dnd5e-checkbox').filter(filter).attr('disabled', '');
 	if (getSetting('linkHeader')) {
 		if (!KEEP.includes('name')) html.find('input[name="name"]').attr('disabled', '');
 		if (!KEEP.includes('img')) {
@@ -131,24 +131,31 @@ function renderItemSheet(sheet, html) {
 		}
 	}
 
-	html.find('a.editor-edit,div.item-controls,.damage-control,a[disabled]').remove();
+	html
+		.find('a.editor-edit,div.item-controls,.damage-control,a[disabled],button:has(i.fa-trash),button:has(i.fa-plus)')
+		.remove();
 	if (!KEEP.includes('system.description.value')) html.find('button.edit-item-description').remove();
 
 	const fixes = [{ sel: 'input[name="system.uses.max"]', val: sheet.item.system.uses?.max ?? '' }];
 	fixes.forEach((f) => html.find(f.sel).val(f.val));
 	if (getSetting('hideUselessInformation')) {
-		html.find('input[type=checkbox][disabled]:only-of-type:not(:checked)').parent().remove();
+		html
+			.find(
+				'input[type=checkbox][disabled]:only-of-type:not(:checked),dnd5e-checkbox[disabled]:only-of-type:not([checked])'
+			)
+			.parent()
+			.remove();
 		if (item.type === 'weapon') {
 			const weaponProperties = html.find('div.weapon-properties');
 			if (weaponProperties[0]?.childElementCount < 2) weaponProperties.remove();
 		}
 		html[0].querySelectorAll('.form-group:not(:has(button:only-child))').forEach((v, idx) => {
-			const validInput = [...v.querySelectorAll('input,select')].find((el) => {
+			const validInput = [...v.querySelectorAll('input,select,dnd5e-checkbox')].find((el) => {
 				if (!el.disabled) {
 					if (el.nodeName === 'INPUT' && el.name === 'system.uses.value') return false;
 					return true;
 				}
-				if (el.value === '') return false;
+				if (el.value === '' && !el.checked) return false;
 				if (el.nodeName === 'SELECT' && ['spell', 'self'].includes(el.value)) return false;
 				return true;
 			});

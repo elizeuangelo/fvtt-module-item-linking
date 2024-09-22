@@ -5,7 +5,7 @@
 function toObject(source = true) {
 	const data = foundry.abstract.DataModel.prototype.toObject.call(this, source);
 	if (this.compendium && !data.flags['item-linking']?.baseItem) {
-		setProperty(data, 'flags.item-linking', {
+		foundry.utils.setProperty(data, 'flags.item-linking', {
 			baseItem: this.uuid,
 			isLinked: true,
 		});
