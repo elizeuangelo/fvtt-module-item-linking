@@ -10,7 +10,7 @@ export const KEEP = [
 	'system.consume.amount',
 	'system.consume.target',
 	'system.consume.type',
-	'system.uses.value',
+	'system.uses.spent',
 	'system.recharge.charged',
 	'system.quantity',
 	'system.proficient',
