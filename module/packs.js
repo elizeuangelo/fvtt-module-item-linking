@@ -20,7 +20,7 @@ function getPacksByType() {
  * @returns {boolean} - Returns true if the item is from a Compendium source, false otherwise.
  */
 export function fromCompendiumSource(item) {
-	return item._stats?.compendiumSource || Boolean(/Compendium/.exec(item.flags.core?.sourceId));
+	return (item._stats?.compendiumSource && fromUuidSync(item._stats?.compendiumSource).constructor.name == "Compendium") || Boolean(/Compendium/.exec(item.flags.core?.sourceId));
 }
 
 /**
