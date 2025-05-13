@@ -7,6 +7,14 @@ export function canOverride(itemData) {
 	return game.user.isGM || (isOwner && (!overrideOwnerUser || overrideOwnerUser === game.user.name));
 }
 
+function getCompendiumFromLinkedItem(itemData) {
+	const baseItem = itemData.getFlag('item-linking', 'baseItem');
+	if (!baseItem) return null;
+	const baseData = fromUuidSync(baseItem);
+	if (!baseData) return null;
+	return game.packs.get(baseData.pack);
+}
+
 function createOverrideButton(sheet, buttons) {
 	if (sheet.item.compendium) return;
 	if (!getSetting('itemOverrides')) return;
@@ -55,7 +63,9 @@ function createOverrideButton(sheet, buttons) {
 							const overrideOwnerUsername = html.find('input[name="overrideOwnerUsername"]').val();
 							const exceptionProperties = html.find('input[name="exceptionProperties"]').val();
 							sheet.item.update({
-								flags: { [MODULE_ID]: { overrideOwnerUsername, linkPropertyExceptions: exceptionProperties } },
+								flags: {
+									[MODULE_ID]: { overrideOwnerUsername, linkPropertyExceptions: exceptionProperties },
+								},
 							});
 						},
 					},
