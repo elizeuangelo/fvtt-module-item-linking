@@ -8,9 +8,14 @@ function getCompendiumFromLinkedItem(item) {
 	return game.packs.get(baseData.pack);
 }
 
+function canCreateCompendiumButton(sheet) {
+	if (!game.user.isGM) return false;
+	if (sheet.item.compendium) return false;
+	return true;
+}
+
 function createOpenCompendiumButton(sheet, buttons) {
-	if (!game.user.isGM) return;
-	if (sheet.item.compendium) return;
+	if (!canCreateCompendiumButton(sheet)) return;
 	const compendium = getCompendiumFromLinkedItem(sheet.item);
 	if (!compendium) return;
 	buttons.unshift({
@@ -23,3 +28,20 @@ function createOpenCompendiumButton(sheet, buttons) {
 
 /** -------------------------------------------- */
 Hooks.on('getItemSheetHeaderButtons', createOpenCompendiumButton);
+Hooks.on('tidy5e-sheet.ready', (api) => {
+	api.registerItemHeaderControls({
+		controls: [
+			{
+				icon: 'fas fa-book-section',
+				label: 'Open Linked Item Compendium',
+				visible() {
+					return canCreateCompendiumButton(this) && !!getCompendiumFromLinkedItem(this.item);
+				},
+				onClickAction() {
+					const compendium = getCompendiumFromLinkedItem(this.item);
+					compendium.render(true)
+				}
+			}
+		]
+	})
+});
