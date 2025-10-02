@@ -4,7 +4,11 @@
 
 function toObject(source = true) {
 	const data = foundry.abstract.DataModel.prototype.toObject.call(this, source);
-	if (this.compendium && !data.flags['item-linking']?.baseItem) {
+	if (
+		this.compendium &&
+		this.id &&
+		(!data.flags['item-linking']?.baseItem || data.flags['item-linking'].baseItem.at(-1) === '.')
+	) {
 		foundry.utils.setProperty(data, 'flags.item-linking', {
 			baseItem: this.uuid,
 			isLinked: true,
