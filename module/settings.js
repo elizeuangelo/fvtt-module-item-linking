@@ -8,7 +8,7 @@ const settings = {
 		scope: 'world',
 		config: true,
 		type: Boolean,
-		default: true,
+		default: false,
 	},
 	linkHeader: {
 		name: 'Link Header',
