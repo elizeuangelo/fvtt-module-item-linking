@@ -15,7 +15,7 @@
         <tbody>
             {{#each entries}}
             <tr data-item="{{item.id}}">
-                <td data-action="render" data-uuid="{{actor.uuid}}">{{actor.name}}</td>
+                <td data-action="render" data-uuid="{{actor.uuid}}">{{actor.name}}{{#if (eq actor.type "npc")}} (NPC){{/if}}</td>
                 <td data-action="render" data-uuid="{{item.uuid}}">{{item.name}}</td>
                 <td>{{localize label}}</td>
                 {{#if baseItem}}

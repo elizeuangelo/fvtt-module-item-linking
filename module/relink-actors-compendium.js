@@ -28,7 +28,7 @@ export async function relinkActorsCompendiumApp() {
 				yes: {
 					icon: '<i class="fas fa-magnifying-glass"></i>',
 					label: game.i18n.localize('Search'),
-					callback: async (html, event, processor) => {
+					callback: async (html, _event, processor) => {
 						const form = html[0].querySelector('form');
 						const data = new FormDataExtended(form);
 						if (form.reportValidity() === false) {
@@ -57,6 +57,7 @@ export async function relinkActorsCompendiumApp() {
  * @param {Object} data - The data object containing information about the inventory search.
  * @param {boolean} data.subfolders - Flag indicating whether to include subfolders in the search.
  * @param {boolean} data.hideUnmatched - Flag indicating whether to hide unmatched items.
+ * @param {boolean} data.hideNpcs - Flag indicating whether to hide NPCs.
  * @param {string} data.typeFilter - The type of the item to search for.
  * @param {string[]} data.packs - An array of pack names to search for items.
  * @param {string[]} data.folders - An array of folder IDs to search for items.
@@ -77,7 +78,10 @@ async function searchInventory(data, processor) {
 		}
 	}
 	const entries = [];
-	const actors = game.actors.filter((a) => folders.includes(a.folder));
+	let actors = game.actors.filter((a) => folders.includes(a.folder));
+	if (data.hideNpcs) {
+		actors = actors.filter((a) => a.type !== 'npc');
+	}
 	processor.label = `Searching... found ${actors.length} actors in ${folders.length} folders`;
 	for (const actor of actors) {
 		for (const item of actor.items) {
@@ -182,7 +186,7 @@ async function searchInventory(data, processor) {
 			},
 			render: (html) => addEventListeners(html),
 		},
-		{ classes: ['dialog', 'item-linking-dialog'], width: 800, resizable: true }
+		{ classes: ['dialog', 'item-linking-dialog'], width: 840, resizable: true }
 	);
 	new ProcessingDialog(dialog, 'linkall');
 	dialog.render(true);
