@@ -2,6 +2,14 @@ export const TITLE = 'Item Linking';
 export const MODULE_ID = 'item-linking';
 
 const settings = {
+	ignoreNPCs: {
+		name: 'Ignore NPCs',
+		hint: 'Will not link items on NPC actors. May not work with all systems.',
+		scope: 'world',
+		config: true,
+		type: Boolean,
+		default: true,
+	},
 	linkHeader: {
 		name: 'Link Header',
 		hint: 'Linked items will also have their names and images linked.',

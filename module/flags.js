@@ -1,4 +1,4 @@
-import { MODULE_ID } from './settings.js';
+import { MODULE_ID, getSetting } from './settings.js';
 import { fromCompendiumSource } from './packs.js';
 
 /**
@@ -27,6 +27,10 @@ export function setFlag(item, name, value) {
  * @param {Object} item - The item object to be pre-created.
  */
 function preCreateItem(item) {
+	if (item.parent?.type === 'npc' && getSetting('ignoreNPCs') && 'item-linking' in item.flags) {
+		item.updateSource({ 'flags.-=item-linking': null });
+		return;
+	}
 	const baseFlags = {
 		baseItem: null,
 		isLinked: false,
