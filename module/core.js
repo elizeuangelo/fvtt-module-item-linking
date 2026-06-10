@@ -2,8 +2,21 @@
  * Fixes for Core methods and functions
  */
 
+import { createEffectiveSource } from './link-data.js';
+import LinkedItemResolver from './link-resolver.js';
+import { MODULE_ID } from './settings.js';
+
 function toObject(source = true) {
 	const data = foundry.abstract.DataModel.prototype.toObject.call(this, source);
+	if (
+		this instanceof CONFIG.Item.documentClass &&
+		!this.compendium &&
+		this.getFlag?.(MODULE_ID, 'isLinked') &&
+		this.getFlag?.(MODULE_ID, 'baseItem')
+	) {
+		const baseSource = LinkedItemResolver.getCachedBaseSource(this.getFlag(MODULE_ID, 'baseItem'));
+		if (baseSource) return this.constructor.shimData(createEffectiveSource(data, baseSource, false, { origin: this.uuid }));
+	}
 	if (
 		this.compendium &&
 		this.id &&

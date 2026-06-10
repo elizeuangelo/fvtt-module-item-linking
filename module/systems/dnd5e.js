@@ -62,6 +62,10 @@ function onSearchFilter(event, query, rgx, html) {
 	}
 }
 
+function keepTidySwitch(title, html) {
+	html.find(`label.tidy-switch[title=${title}] input.hidden`).attr('data-link-keep', '');
+}
+
 function renderItemSheet(sheet, html) {
 	if (!html.jquery) html = $(html);
 	const item = sheet.document;
@@ -75,9 +79,9 @@ function renderItemSheet(sheet, html) {
 	const row = $(`
             <ul class="summary link flexrow">
                 <li class="item-link" ${game.user.isGM ? 'style="cursor:pointer"' : ''}>${linkText[+linked + +(brokenLink && linked)]}</li>
-                ${linked && game.user.isGM ? '<input type="search" placeholder="Filter" />' : ''}
+                ${linked && game.user.isGM ? '<input type="search" placeholder="Filter" data-link-keep />' : ''}
                 <li>
-                    <select ${game.user.isGM && linked ? '' : 'disabled'}>
+                    <select data-link-keep ${game.user.isGM && linked ? '' : 'disabled'}>
                         ${
 									brokenLink
 										? `<optgroup label="Broken Link"><option value="" selected}>Unknown item</option></optgroup>`
@@ -140,6 +144,9 @@ function renderItemSheet(sheet, html) {
 			element.hasAttribute('data-link-keep') ||
 			(element.type === 'color' && element.previousElementSibling?.disabled)
 		);
+
+	if (KEEP.includes('system.equipped')) keepTidySwitch('Equipped', html);
+	if (KEEP.includes('system.identified')) keepTidySwitch('Identified', html);
 
 	html.find('input,select,textarea,[data-target],dnd5e-checkbox').filter(filter).attr('disabled', '');
 	if (getSetting('linkHeader')) {
