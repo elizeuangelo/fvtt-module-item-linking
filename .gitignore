@@ -1,10 +1,9 @@
 # Files
 package-lock.json
-foundry.js
-item.mjs
 *.lock
 
 # Directories
+references/
 node_modules/
 scripts/
 /packs/
