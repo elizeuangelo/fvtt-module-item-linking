@@ -1,0 +1,32 @@
+name: Broken World Compendiums Fix
+type: script
+_id: CNZ0PB7UcGpmLbkw
+author: SyH1ydCe6TgtPGAR
+img: icons/tools/hand/saw-steel-white.webp
+scope: global
+command: >-
+  const worldPacks = game.packs.contents.filter(p => p.metadata.packageType ===
+  'world' && p.metadata.type === 'Item');
+
+  const items = (await Promise.all(worldPacks.map(p =>
+  p.getDocuments()))).flat();
+
+  items.filter(i => i.flags['item-linking']).forEach(i =>
+  i.update({'flags.-=item-linking': null}));
+folder: null
+sort: 0
+ownership:
+  default: 0
+  SyH1ydCe6TgtPGAR: 3
+flags: {}
+_stats:
+  systemId: dnd5e
+  systemVersion: 3.1.0
+  coreVersion: '13.350'
+  createdTime: 1711371857579
+  modifiedTime: 1711372078614
+  lastModifiedBy: SyH1ydCe6TgtPGAR
+  compendiumSource: null
+  duplicateSource: null
+  exportSource: null
+_key: '!macros!CNZ0PB7UcGpmLbkw'
