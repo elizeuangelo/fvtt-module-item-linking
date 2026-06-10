@@ -1,8 +1,8 @@
 import { getFlag } from '../flags.js';
 import { PACKS, createUuidFromIndex, getItemsFromCompendiumsByType } from '../packs.js';
-import { MODULE_ID, getSetting } from '../settings.js';
-import { sleep } from '../utils.js';
+import { getSetting } from '../settings.js';
 import { keepPropertiesOverride } from '../system.js';
+import { sleep } from '../utils.js';
 
 export const KEEP = [
 	'flags.item-linking.isLinked',
@@ -74,20 +74,17 @@ function renderItemSheet(sheet, html) {
 	const linkText = ['Not Linked', 'Linked', 'Broken Link'];
 	const row = $(`
             <ul class="summary link flexrow">
-                <li class="item-link">${linkText[+linked + +(brokenLink && linked)]}</li>
-                ${linked && game.user.isGM ? '<input type="search" name="search" placeholder="Filter" />' : ''}
-                <input type="checkbox" name="flags.${MODULE_ID}.isLinked" style="display:none" ${
-		linked ? 'checked' : ''
-	} />
+                <li class="item-link" ${game.user.isGM ? 'style="cursor:pointer"' : ''}>${linkText[+linked + +(brokenLink && linked)]}</li>
+                ${linked && game.user.isGM ? '<input type="search" placeholder="Filter" />' : ''}
                 <li>
-                    <select name="flags.${MODULE_ID}.baseItem" ${game.user.isGM && linked ? '' : 'disabled'}>
+                    <select ${game.user.isGM && linked ? '' : 'disabled'}>
                         ${
 									brokenLink
 										? `<optgroup label="Broken Link"><option value="" selected}>Unknown item</option></optgroup>`
 										: ''
 								}
                         ${PACKS.map((pack) => createOptionsFromPack(pack, item.type, getFlag(item, 'baseItem'))).join(
-									''
+									'',
 								)}
                     </select>
                 </li>
@@ -96,17 +93,38 @@ function renderItemSheet(sheet, html) {
 	html.find('div.header-details').append(row);
 	if (game.user.isGM) {
 		const link = row.find('.item-link');
-		const checkbox = row.find(`input[name="flags.${MODULE_ID}.isLinked"]`);
-		link.on('click', () => checkbox.trigger('click'));
+		const select = row.find('select');
+
+		link.on('click', async () => {
+			if (game.user.isGM === false) return;
+			const linked = getFlag(item, 'isLinked') ?? false;
+			const brokenLink = baseItemId ? !Boolean(fromUuidSync(baseItemId)) : true;
+			if (linked) {
+				await item.setFlag('item-linking', 'isLinked', false);
+			} else {
+				await item.setFlag('item-linking', 'isLinked', true);
+			}
+			link.text(linkText[+!linked + +(brokenLink && !linked)]);
+		});
+
+		select.on('change', async () => {
+			const value = select.val();
+			if (!value) {
+				await item.setFlag('item-linking', 'baseItem', null);
+				return;
+			}
+			await item.setFlag('item-linking', 'baseItem', value);
+		});
+
 		if (baseItemId && brokenLink === false) {
-			html.find(`select[name="flags.${MODULE_ID}.baseItem"]`).on('contextmenu', async () => {
+			select.on('contextmenu', async () => {
 				const baseItem = await fromUuid(baseItemId);
 				baseItem?.sheet.render(true);
 			});
 		}
 		new SearchFilter({
-			inputSelector: 'input[name="search"]',
-			contentSelector: `select[name="flags.${MODULE_ID}.baseItem"]`,
+			inputSelector: 'ul.link input[type="search"]',
+			contentSelector: 'ul.link select',
 			callback: onSearchFilter,
 		}).bind(html[0]);
 	}
@@ -141,7 +159,7 @@ function renderItemSheet(sheet, html) {
 	if (getSetting('hideUselessInformation')) {
 		html
 			.find(
-				'input[type=checkbox][disabled]:only-of-type:not(:checked),dnd5e-checkbox[disabled]:only-of-type:not([checked])'
+				'input[type=checkbox][disabled]:only-of-type:not(:checked),dnd5e-checkbox[disabled]:only-of-type:not([checked])',
 			)
 			.parent()
 			.remove();
