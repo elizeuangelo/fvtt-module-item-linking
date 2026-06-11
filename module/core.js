@@ -5,6 +5,7 @@
 import { createEffectiveSource } from './link-data.js';
 import LinkedItemResolver from './link-resolver.js';
 import { MODULE_ID } from './settings.js';
+import { getLocalItemSource } from './utils.js';
 
 function toObject(source = true) {
 	const data = foundry.abstract.DataModel.prototype.toObject.call(this, source);
@@ -15,7 +16,8 @@ function toObject(source = true) {
 		this.getFlag?.(MODULE_ID, 'baseItem')
 	) {
 		const baseSource = LinkedItemResolver.getCachedBaseSource(this.getFlag(MODULE_ID, 'baseItem'));
-		if (baseSource) return this.constructor.shimData(createEffectiveSource(data, baseSource, false, { origin: this.uuid }));
+		const localSource = this.parent?.token ? getLocalItemSource(this) : data;
+		if (baseSource) return this.constructor.shimData(createEffectiveSource(localSource, baseSource, false, { origin: this.uuid }));
 	}
 	if (
 		this.compendium &&

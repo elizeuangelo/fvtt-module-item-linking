@@ -24,7 +24,37 @@ export function deletionKeys(original, other) {
  * @returns {boolean} - Returns true if the item is a primary item, false otherwise.
  */
 export function isPrimaryItem(i) {
-	return !i.parent?.token || i.parent.token.delta._source.items.includes(i._source);
+	return !i.parent?.token || Boolean(getActorItemSource(i) || getTokenDeltaItemSource(i));
+}
+
+export function getTokenDeltaItemSource(item) {
+	const deltaItems = item.parent?.token?.delta?._source?.items;
+	if (!deltaItems) return null;
+	if (Array.isArray(deltaItems)) return deltaItems.find((i) => i._id === item.id) ?? null;
+	return deltaItems.get?.(item.id)?._source ?? deltaItems[item.id] ?? null;
+}
+
+export function getActorItemSource(item) {
+	const token = item.parent?.token;
+	if (!token) return null;
+	return game.actors.get(token.actorId)?.items.get(item.id)?._source ?? null;
+}
+
+export function getLocalItemSource(item) {
+	const actorSource = getActorItemSource(item);
+	const deltaSource = getTokenDeltaItemSource(item);
+	if (!actorSource && !deltaSource) return item._source;
+	const source = foundry.utils.deepClone(actorSource ?? item._source);
+	if (deltaSource) {
+		foundry.utils.mergeObject(source, foundry.utils.deepClone(deltaSource), {
+			inplace: true,
+			insertKeys: true,
+			insertValues: true,
+			overwrite: true,
+			performDeletions: true,
+		});
+	}
+	return source;
 }
 
 /**

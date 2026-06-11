@@ -1,6 +1,6 @@
 import { MODULE_ID } from './settings.js';
 import { createEffectiveSource, createUnlinkUpdate, mergePendingUpdate } from './link-data.js';
-import { isPrimaryItem } from './utils.js';
+import { getLocalItemSource, isPrimaryItem } from './utils.js';
 import Logger from './lib/Logger.js';
 
 class LinkedItemResolver {
@@ -89,7 +89,8 @@ class LinkedItemResolver {
 	}
 
 	static applyBaseSource(item, baseSource) {
-		const effective = createEffectiveSource(item._source, baseSource, false, { origin: item.uuid });
+		const localSource = getLocalItemSource(item);
+		const effective = createEffectiveSource(localSource, baseSource, false, { origin: item.uuid });
 		const changes = foundry.utils.diffObject(item._source, effective, { deletionKeys: true });
 		if (foundry.utils.isEmpty(changes)) return false;
 		item.updateSource(changes, { recursive: true });
@@ -127,7 +128,7 @@ class LinkedItemResolver {
 	static async createUnlinkUpdate(item, changes = {}) {
 		const expandedChanges = foundry.utils.expandObject(foundry.utils.deepClone(changes));
 		const baseUuid = expandedChanges.flags?.[MODULE_ID]?.baseItem ?? this.getBaseUuid(item);
-		const pending = mergePendingUpdate(item._source, changes);
+		const pending = mergePendingUpdate(getLocalItemSource(item), changes);
 		const baseSource = await this.getBaseSource(baseUuid);
 		if (!baseSource) {
 			const update = foundry.utils.flattenObject(pending);
