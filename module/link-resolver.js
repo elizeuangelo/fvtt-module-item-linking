@@ -94,6 +94,7 @@ class LinkedItemResolver {
 		const changes = foundry.utils.diffObject(item._source, effective, { deletionKeys: true });
 		if (foundry.utils.isEmpty(changes)) return false;
 		item.updateSource(changes, { recursive: true });
+		item.prepareFinalAttributes?.();
 		return true;
 	}
 

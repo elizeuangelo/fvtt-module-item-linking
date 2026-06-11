@@ -42,7 +42,7 @@ jobs:
 
          # Zip Files
          - name: Zip files
-           run: zip -r item-linking * -x ".github/*" "assets/*" "tools/*" "package-lock.json" "package.json" "README.md" "LICENSE" "tsconfig.json" ".editorconfig"
+           run: zip -r item-linking * -x ".github/*" "assets/*" "tools/*" "node_modules/*" "module/packs/*" "package-lock.json" "package.json" "README.md" "LICENSE" "tsconfig.json" ".editorconfig"
 
          # Create a release for this specific version
          - name: Create Release
