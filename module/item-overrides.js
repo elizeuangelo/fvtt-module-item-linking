@@ -1,10 +1,13 @@
 import { MODULE_ID, getSetting } from './settings.js';
 
-export function canOverride(itemData) {
-	const overrideOwnerUser = itemData.flags?.[MODULE_ID]?.overrideOwnerUser;
-	const isOwner =
-		game.user.isGM || itemData?.folder?.data?.permission?.[game.user.id] === CONST.DOCUMENT_PERMISSION_LEVELS.OWNER;
-	return game.user.isGM || (isOwner && (!overrideOwnerUser || overrideOwnerUser === game.user.name));
+export function canOverride(itemData = {}) {
+	const flags = itemData.flags?.[MODULE_ID] ?? {};
+	const overrideOwnerUsername = itemData.getFlag?.(MODULE_ID, 'overrideOwnerUsername') ?? flags.overrideOwnerUsername;
+	const ownerLevel = CONST.DOCUMENT_OWNERSHIP_LEVELS?.OWNER ?? CONST.DOCUMENT_PERMISSION_LEVELS?.OWNER ?? 3;
+	const ownership = itemData.ownership ?? itemData._source?.ownership ?? {};
+	const permission = itemData.permission ?? ownership[game.user.id] ?? ownership.default ?? 0;
+	const isOwner = game.user.isGM || itemData.testUserPermission?.(game.user, 'OWNER') || permission >= ownerLevel;
+	return game.user.isGM || (isOwner && (!overrideOwnerUsername || overrideOwnerUsername === game.user.name));
 }
 
 function getCompendiumFromLinkedItem(itemData) {
