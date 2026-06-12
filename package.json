@@ -1,7 +1,7 @@
 {
 	"type": "module",
 	"private": true,
-	"version": "1.4.0",
+	"version": "1.4.1",
 	"devDependencies": {
 		"@foundryvtt/foundryvtt-cli": "^1.1.0"
 	},
