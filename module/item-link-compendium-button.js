@@ -29,7 +29,7 @@ function createOpenCompendiumButton(sheet, buttons) {
 /** -------------------------------------------- */
 Hooks.on('getItemSheetHeaderButtons', createOpenCompendiumButton);
 Hooks.on('tidy5e-sheet.ready', (api) => {
-	api.registerItemHeaderControls({
+	api.registerItemHeaderControls?.({
 		controls: [
 			{
 				icon: 'fas fa-book-section',
@@ -39,9 +39,9 @@ Hooks.on('tidy5e-sheet.ready', (api) => {
 				},
 				onClickAction() {
 					const compendium = getCompendiumFromLinkedItem(this.item);
-					compendium.render(true)
-				}
-			}
-		]
-	})
+					compendium.render(true);
+				},
+			},
+		],
+	});
 });

@@ -90,7 +90,7 @@ function createOverrideButton(sheet, buttons) {
 /** -------------------------------------------- */
 Hooks.on('getItemSheetHeaderButtons', createOverrideButton);
 Hooks.on('tidy5e-sheet.ready', (api) => {
-	api.registerItemHeaderControls({
+	api.registerItemHeaderControls?.({
 		controls: [
 			{
 				icon: 'fas fa-undo',
@@ -100,8 +100,8 @@ Hooks.on('tidy5e-sheet.ready', (api) => {
 				},
 				onClickAction() {
 					showLinkingDialog(this);
-				}
-			}
-		]
-	})
+				},
+			},
+		],
+	});
 });
