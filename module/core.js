@@ -17,7 +17,10 @@ function toObject(source = true) {
 	) {
 		const baseSource = LinkedItemResolver.getCachedBaseSource(this.getFlag(MODULE_ID, 'baseItem'));
 		const localSource = this.parent?.token ? getLocalItemSource(this) : data;
-		if (baseSource) return this.constructor.shimData(createEffectiveSource(localSource, baseSource, false, { origin: this.uuid }));
+		if (baseSource) return this.constructor.shimData(createEffectiveSource(localSource, baseSource, false, {
+			origin: this.uuid,
+			preserveEffectState: this.parent instanceof CONFIG.Actor.documentClass,
+		}));
 	}
 	if (
 		this.compendium &&

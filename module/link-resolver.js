@@ -90,7 +90,10 @@ class LinkedItemResolver {
 
 	static applyBaseSource(item, baseSource) {
 		const localSource = getLocalItemSource(item);
-		const effective = createEffectiveSource(localSource, baseSource, false, { origin: item.uuid });
+		const effective = createEffectiveSource(localSource, baseSource, false, {
+			origin: item.uuid,
+			preserveEffectState: item.parent instanceof CONFIG.Actor.documentClass,
+		});
 		const changes = foundry.utils.diffObject(item._source, effective, { deletionKeys: true });
 		if (foundry.utils.isEmpty(changes)) return false;
 		item.updateSource(changes, { recursive: true });
@@ -137,7 +140,10 @@ class LinkedItemResolver {
 			update[`flags.${MODULE_ID}.isLinked`] = false;
 			return update;
 		}
-		return createUnlinkUpdate(pending, baseSource, { origin: item.uuid });
+		return createUnlinkUpdate(pending, baseSource, {
+			origin: item.uuid,
+			preserveEffectState: item.parent instanceof CONFIG.Actor.documentClass,
+		});
 	}
 
 	static renderItem(item) {

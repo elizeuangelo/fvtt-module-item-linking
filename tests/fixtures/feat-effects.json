@@ -1,0 +1,624 @@
+[
+	{
+		"_id": "mrvuW3CC6fKfoOYS",
+		"name": "Resilient",
+		"type": "feat",
+		"system": {
+			"duration": {
+				"value": "",
+				"units": ""
+			}
+		},
+		"flags": {
+			"item-linking": {
+				"baseItem": "Compendium.world.v3-feats.Item.Y1LMOElL3tnIJiP4",
+				"isLinked": true
+			}
+		},
+		"effects": [
+			{
+				"_id": "78x3gAIVyNLk2kYo",
+				"name": "Resilient (Cha)",
+				"disabled": true,
+				"transfer": true,
+				"origin": "Compendium.world.v3-feats.Item.Y1LMOElL3tnIJiP4",
+				"duration": {
+					"rounds": null,
+					"startTime": null,
+					"seconds": null,
+					"combat": null,
+					"turns": null,
+					"startRound": null,
+					"startTurn": null
+				},
+				"changes": [
+					{
+						"key": "system.abilities.cha.value",
+						"mode": 2,
+						"value": "1",
+						"priority": 20
+					},
+					{
+						"key": "system.abilities.cha.proficient",
+						"mode": 5,
+						"value": "1",
+						"priority": 20
+					}
+				],
+				"flags": {
+					"dae": {
+						"disableCondition": "",
+						"disableIncapacitated": false,
+						"stackable": "noneName",
+						"showIcon": false,
+						"durationExpression": "",
+						"macroRepeat": "none",
+						"specialDuration": []
+					}
+				}
+			},
+			{
+				"_id": "rg2aEKL6To5hqdMX",
+				"name": "Resilient (Con)",
+				"disabled": true,
+				"transfer": true,
+				"origin": "Compendium.world.v3-feats.Item.Y1LMOElL3tnIJiP4",
+				"duration": {
+					"rounds": null,
+					"startTime": null,
+					"seconds": null,
+					"combat": null,
+					"turns": null,
+					"startRound": null,
+					"startTurn": null
+				},
+				"changes": [
+					{
+						"key": "system.abilities.con.value",
+						"mode": 2,
+						"value": "1",
+						"priority": 20
+					},
+					{
+						"key": "system.abilities.con.proficient",
+						"mode": 5,
+						"value": "1",
+						"priority": 20
+					}
+				],
+				"flags": {
+					"dae": {
+						"disableCondition": "",
+						"disableIncapacitated": false,
+						"stackable": "noneName",
+						"showIcon": false,
+						"durationExpression": "",
+						"macroRepeat": "none",
+						"specialDuration": []
+					}
+				}
+			},
+			{
+				"_id": "jeHZlKgV7kcIHHLb",
+				"name": "Resilient (Dex)",
+				"disabled": true,
+				"transfer": true,
+				"origin": "Compendium.world.v3-feats.Item.Y1LMOElL3tnIJiP4",
+				"duration": {
+					"rounds": null,
+					"startTime": null,
+					"seconds": null,
+					"combat": null,
+					"turns": null,
+					"startRound": null,
+					"startTurn": null
+				},
+				"changes": [
+					{
+						"key": "system.abilities.dex.value",
+						"mode": 2,
+						"value": "1",
+						"priority": 20
+					},
+					{
+						"key": "system.abilities.dex.proficient",
+						"mode": 5,
+						"value": "1",
+						"priority": 20
+					}
+				],
+				"flags": {
+					"dae": {
+						"disableCondition": "",
+						"disableIncapacitated": false,
+						"stackable": "noneName",
+						"showIcon": false,
+						"durationExpression": "",
+						"macroRepeat": "none",
+						"specialDuration": []
+					}
+				}
+			},
+			{
+				"_id": "pncwfbxtUndFIQaD",
+				"name": "Resilient (Int)",
+				"disabled": true,
+				"transfer": true,
+				"origin": "Compendium.world.v3-feats.Item.Y1LMOElL3tnIJiP4",
+				"duration": {
+					"rounds": null,
+					"startTime": null,
+					"seconds": null,
+					"combat": null,
+					"turns": null,
+					"startRound": null,
+					"startTurn": null
+				},
+				"changes": [
+					{
+						"key": "system.abilities.int.value",
+						"mode": 2,
+						"value": "1",
+						"priority": 20
+					},
+					{
+						"key": "system.abilities.int.proficient",
+						"mode": 5,
+						"value": "1",
+						"priority": 20
+					}
+				],
+				"flags": {
+					"dae": {
+						"disableCondition": "",
+						"disableIncapacitated": false,
+						"stackable": "noneName",
+						"showIcon": false,
+						"durationExpression": "",
+						"macroRepeat": "none",
+						"specialDuration": []
+					}
+				}
+			},
+			{
+				"_id": "FdH47P7qFCfZ74c8",
+				"name": "Resilient (Str)",
+				"disabled": true,
+				"transfer": true,
+				"origin": "Compendium.world.v3-feats.Item.Y1LMOElL3tnIJiP4",
+				"duration": {
+					"rounds": null,
+					"startTime": null,
+					"seconds": null,
+					"combat": null,
+					"turns": null,
+					"startRound": null,
+					"startTurn": null
+				},
+				"changes": [
+					{
+						"key": "system.abilities.str.value",
+						"mode": 2,
+						"value": "1",
+						"priority": 20
+					},
+					{
+						"key": "system.abilities.str.proficient",
+						"mode": 5,
+						"value": "1",
+						"priority": 20
+					}
+				],
+				"flags": {
+					"dae": {
+						"disableCondition": "",
+						"disableIncapacitated": false,
+						"stackable": "noneName",
+						"showIcon": false,
+						"durationExpression": "",
+						"macroRepeat": "none",
+						"specialDuration": []
+					}
+				}
+			},
+			{
+				"_id": "YzGrgSyFi22Tvc4F",
+				"name": "Resilient (Wis)",
+				"disabled": true,
+				"transfer": true,
+				"origin": "Compendium.world.v3-feats.Item.Y1LMOElL3tnIJiP4",
+				"duration": {
+					"rounds": null,
+					"startTime": null,
+					"seconds": null,
+					"combat": null,
+					"turns": null,
+					"startRound": null,
+					"startTurn": null
+				},
+				"changes": [
+					{
+						"key": "system.abilities.wis.value",
+						"mode": 2,
+						"value": "1",
+						"priority": 20
+					},
+					{
+						"key": "system.abilities.wis.proficient",
+						"mode": 5,
+						"value": "1",
+						"priority": 20
+					}
+				],
+				"flags": {
+					"dae": {
+						"disableCondition": "",
+						"disableIncapacitated": false,
+						"stackable": "noneName",
+						"showIcon": false,
+						"durationExpression": "",
+						"macroRepeat": "none",
+						"specialDuration": []
+					}
+				}
+			}
+		]
+	},
+	{
+		"_id": "wQCZuzdOOHgMGdE0",
+		"name": "Skill Expert",
+		"type": "feat",
+		"system": {
+			"duration": {
+				"value": "",
+				"units": ""
+			}
+		},
+		"flags": {
+			"item-linking": {
+				"baseItem": "Compendium.world.v3-feats.Item.79bwLKHX7A0Bq4e8",
+				"isLinked": true
+			}
+		},
+		"effects": [
+			{
+				"_id": "tBq4Pxi0gYurK3BL",
+				"name": "Skill Expert (Cha)",
+				"disabled": true,
+				"transfer": true,
+				"origin": "Compendium.world.v3-feats.Item.pwxjYyp0TMZuU4xN",
+				"duration": {
+					"rounds": null,
+					"startTime": null,
+					"seconds": null,
+					"combat": null,
+					"turns": null,
+					"startRound": null,
+					"startTurn": null
+				},
+				"changes": [
+					{
+						"key": "system.abilities.cha.value",
+						"mode": 2,
+						"value": "1",
+						"priority": 20
+					}
+				],
+				"flags": {
+					"dae": {
+						"disableCondition": "",
+						"disableIncapacitated": false,
+						"stackable": "noneName",
+						"showIcon": false,
+						"durationExpression": "",
+						"macroRepeat": "none",
+						"specialDuration": []
+					}
+				}
+			},
+			{
+				"_id": "hMR5v1eMrgiTI8QK",
+				"name": "Skill Expert (Con)",
+				"disabled": true,
+				"transfer": true,
+				"origin": "Compendium.world.v3-feats.Item.NwdbPaePLXri9gCK",
+				"duration": {
+					"rounds": null,
+					"startTime": null,
+					"seconds": null,
+					"combat": null,
+					"turns": null,
+					"startRound": null,
+					"startTurn": null
+				},
+				"changes": [
+					{
+						"key": "system.abilities.con.value",
+						"mode": 2,
+						"value": "1",
+						"priority": 20
+					}
+				],
+				"flags": {
+					"dae": {
+						"disableCondition": "",
+						"disableIncapacitated": false,
+						"stackable": "noneName",
+						"showIcon": false,
+						"durationExpression": "",
+						"macroRepeat": "none",
+						"specialDuration": []
+					}
+				}
+			},
+			{
+				"_id": "wsjsr83jb6vEiJ3J",
+				"name": "Skill Expert (Dex)",
+				"disabled": true,
+				"transfer": true,
+				"origin": "Compendium.world.v3-feats.Item.U2LfomAp7pxgQv8h",
+				"duration": {
+					"rounds": null,
+					"startTime": null,
+					"seconds": null,
+					"combat": null,
+					"turns": null,
+					"startRound": null,
+					"startTurn": null
+				},
+				"changes": [
+					{
+						"key": "system.abilities.dex.value",
+						"mode": 2,
+						"value": "1",
+						"priority": 20
+					}
+				],
+				"flags": {
+					"dae": {
+						"disableCondition": "",
+						"disableIncapacitated": false,
+						"stackable": "noneName",
+						"showIcon": false,
+						"durationExpression": "",
+						"macroRepeat": "none",
+						"specialDuration": []
+					}
+				}
+			},
+			{
+				"_id": "EjrWZxw69GDhNnw7",
+				"name": "Skill Expert (Int)",
+				"disabled": true,
+				"transfer": true,
+				"origin": "Compendium.world.v3-feats.Item.gIAq4JKGTwTwmBUC",
+				"duration": {
+					"rounds": null,
+					"startTime": null,
+					"seconds": null,
+					"combat": null,
+					"turns": null,
+					"startRound": null,
+					"startTurn": null
+				},
+				"changes": [
+					{
+						"key": "system.abilities.int.value",
+						"mode": 2,
+						"value": "1",
+						"priority": 20
+					}
+				],
+				"flags": {
+					"dae": {
+						"disableCondition": "",
+						"disableIncapacitated": false,
+						"stackable": "noneName",
+						"showIcon": false,
+						"durationExpression": "",
+						"macroRepeat": "none",
+						"specialDuration": []
+					}
+				}
+			},
+			{
+				"_id": "cAidEL3g8dliTnIV",
+				"name": "Skill Expert (Str)",
+				"disabled": true,
+				"transfer": true,
+				"origin": "Compendium.world.v3-feats.Item.mVnUimJSXbZZYXjp",
+				"duration": {
+					"rounds": null,
+					"startTime": null,
+					"seconds": null,
+					"combat": null,
+					"turns": null,
+					"startRound": null,
+					"startTurn": null
+				},
+				"changes": [
+					{
+						"key": "system.abilities.str.value",
+						"mode": 2,
+						"value": "1",
+						"priority": 20
+					}
+				],
+				"flags": {
+					"dae": {
+						"disableCondition": "",
+						"disableIncapacitated": false,
+						"stackable": "noneName",
+						"showIcon": false,
+						"durationExpression": "",
+						"macroRepeat": "none",
+						"specialDuration": []
+					}
+				}
+			},
+			{
+				"_id": "P6VWBV9HcZ8TbRaJ",
+				"name": "Skill Expert (Wis)",
+				"disabled": true,
+				"transfer": true,
+				"origin": "Compendium.world.v3-feats.Item.OkcpZRpv67e3Bo22",
+				"duration": {
+					"rounds": null,
+					"startTime": null,
+					"seconds": null,
+					"combat": null,
+					"turns": null,
+					"startRound": null,
+					"startTurn": null
+				},
+				"changes": [
+					{
+						"key": "system.abilities.wis.value",
+						"mode": 2,
+						"value": "1",
+						"priority": 20
+					}
+				],
+				"flags": {
+					"dae": {
+						"disableCondition": "",
+						"disableIncapacitated": false,
+						"stackable": "noneName",
+						"showIcon": false,
+						"durationExpression": "",
+						"macroRepeat": "none",
+						"specialDuration": []
+					}
+				}
+			}
+		]
+	},
+	{
+		"_id": "foVREOFe6sEpdmJN",
+		"name": "Slasher",
+		"type": "feat",
+		"system": {
+			"duration": {
+				"value": "",
+				"units": ""
+			}
+		},
+		"flags": {
+			"item-linking": {
+				"baseItem": "Compendium.world.v3-feats.Item.70ybHJjlKUGbz6Hu",
+				"isLinked": true
+			}
+		},
+		"effects": [
+			{
+				"_id": "bf0w8HiBivlidSGr",
+				"name": "Slasher",
+				"disabled": false,
+				"transfer": false,
+				"origin": "Compendium.world.v3-feats.Item.70ybHJjlKUGbz6Hu",
+				"duration": {
+					"rounds": null,
+					"startTime": null,
+					"seconds": null,
+					"combat": null,
+					"turns": null,
+					"startRound": null,
+					"startTurn": null
+				},
+				"changes": [
+					{
+						"key": "system.attributes.movement.walk",
+						"mode": 2,
+						"value": "-10",
+						"priority": 20
+					}
+				],
+				"flags": {
+					"dae": {
+						"enableCondition": "",
+						"disableCondition": "",
+						"disableIncapacitated": false,
+						"selfTarget": false,
+						"selfTargetAlways": false,
+						"dontApply": false,
+						"stackable": "noneName",
+						"showIcon": false,
+						"durationExpression": "",
+						"macroRepeat": "none",
+						"specialDuration": []
+					}
+				}
+			},
+			{
+				"_id": "zw1WyBSIbFAfBU3B",
+				"name": "Slasher (Dex)",
+				"disabled": true,
+				"transfer": true,
+				"origin": "Compendium.world.v3-feats.Item.gC59uQJAMIMwBz96",
+				"duration": {
+					"rounds": null,
+					"startTime": null,
+					"seconds": null,
+					"combat": null,
+					"turns": null,
+					"startRound": null,
+					"startTurn": null
+				},
+				"changes": [
+					{
+						"key": "system.abilities.dex.value",
+						"mode": 2,
+						"value": "1",
+						"priority": 20
+					}
+				],
+				"flags": {
+					"dae": {
+						"disableCondition": "",
+						"disableIncapacitated": false,
+						"stackable": "noneName",
+						"showIcon": false,
+						"durationExpression": "",
+						"macroRepeat": "none",
+						"specialDuration": []
+					}
+				}
+			},
+			{
+				"_id": "2jOaGZ7SEH4TLOAZ",
+				"name": "Slasher (Str)",
+				"disabled": true,
+				"transfer": true,
+				"origin": "Compendium.world.v3-feats.Item.3CDWSrZxVPIeHxO1",
+				"duration": {
+					"rounds": null,
+					"startTime": null,
+					"seconds": null,
+					"combat": null,
+					"turns": null,
+					"startRound": null,
+					"startTurn": null
+				},
+				"changes": [
+					{
+						"key": "system.abilities.str.value",
+						"mode": 2,
+						"value": "1",
+						"priority": 20
+					}
+				],
+				"flags": {
+					"dae": {
+						"disableCondition": "",
+						"disableIncapacitated": false,
+						"stackable": "noneName",
+						"showIcon": false,
+						"durationExpression": "",
+						"macroRepeat": "none",
+						"specialDuration": []
+					}
+				}
+			}
+		]
+	}
+]

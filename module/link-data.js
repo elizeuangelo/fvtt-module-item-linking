@@ -78,9 +78,20 @@ export function pickLocalProperties(source, itemData = source, keepEmbedded = tr
 	return picked;
 }
 
-export function createChanges(itemData, baseItemData, ignoreEmbedded = true) {
+// Effect definitions stay linked, but toggles belong to each actor's copy.
+function preserveEffectDisabled(itemData, inherited) {
+	if (!Array.isArray(itemData.effects) || !Array.isArray(inherited.effects)) return;
+	const localById = new Map(itemData.effects.filter((effect) => effect._id).map((effect) => [effect._id, effect]));
+	for (const effect of inherited.effects) {
+		const local = localById.get(effect._id);
+		if (typeof local?.disabled === 'boolean') effect.disabled = local.disabled;
+	}
+}
+
+export function createChanges(itemData, baseItemData, ignoreEmbedded = true, { preserveEffectState = false } = {}) {
 	const source = removeLocalProperties(foundry.utils.deepClone(itemData), itemData, true);
 	const baseItemSource = removeLocalProperties(foundry.utils.deepClone(baseItemData), itemData, ignoreEmbedded);
+	if (preserveEffectState && !ignoreEmbedded) preserveEffectDisabled(itemData, baseItemSource);
 	const diff = foundry.utils.diffObject(source, baseItemSource);
 	const deletions = deletionKeys(source, baseItemSource);
 	return foundry.utils.mergeObject(deletions, diff);
@@ -97,7 +108,7 @@ function rewriteEmbeddedOrigins(source, origin) {
 	return source;
 }
 
-export function createEffectiveSource(itemData, baseItemData, keepEmbedded = true, { origin } = {}) {
+export function createEffectiveSource(itemData, baseItemData, keepEmbedded = true, { origin, preserveEffectState = false } = {}) {
 	const effective = foundry.utils.deepClone(baseItemData);
 	const local = pickLocalProperties(itemData, itemData, keepEmbedded);
 	foundry.utils.mergeObject(effective, local, {
@@ -107,11 +118,12 @@ export function createEffectiveSource(itemData, baseItemData, keepEmbedded = tru
 		overwrite: true,
 		performDeletions: true,
 	});
+	if (preserveEffectState && !keepEmbedded) preserveEffectDisabled(itemData, effective);
 	return rewriteEmbeddedOrigins(effective, origin);
 }
 
-export function createUnlinkUpdate(itemData, baseItemData, { origin } = {}) {
-	const materialized = createEffectiveSource(itemData, baseItemData, false, { origin });
+export function createUnlinkUpdate(itemData, baseItemData, { origin, preserveEffectState = false } = {}) {
+	const materialized = createEffectiveSource(itemData, baseItemData, false, { origin, preserveEffectState });
 	const update = foundry.utils.flattenObject(materialized);
 	update[`flags.${MODULE_ID}.baseItem`] = itemData.flags?.[MODULE_ID]?.baseItem ?? null;
 	update[`flags.${MODULE_ID}.isLinked`] = false;
