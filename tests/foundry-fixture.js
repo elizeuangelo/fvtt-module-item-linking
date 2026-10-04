@@ -130,7 +130,10 @@ export async function fixture() {
 	const stubs = new Map([
 		['settings.js', { MODULE_ID: 'item-linking', getSetting: (key) => settings[key] }],
 		['system.js', { keepPropertiesOverride: (data) => [...keep, ...(data.flags?.['item-linking']?.linkPropertyExceptions ?? '').split(',').filter(Boolean)] }],
-		['flags.js', { getFlag: (item, key) => item.getFlag('item-linking', key) }],
+		['flags.js', {
+			getFlag: (item, key) => item.getFlag('item-linking', key),
+			setFlag: (item, key, value) => item.setFlag('item-linking', key, value),
+		}],
 		['lib/Logger.js', { default: { warn() {} } }],
 	]);
 	const modules = new Map();
@@ -152,5 +155,5 @@ export async function fixture() {
 	const data = await load('link-data.js');
 	const resolver = (await load('link-resolver.js')).default;
 	await load('core.js');
-	return { settings, hooks, readyHooks, game, Actor, Item, TextEditor, documents, data, resolver, load, mergeObject };
+	return { settings, hooks, readyHooks, game, Actor, Item, TextEditor, documents, data, resolver, load, mergeObject, context };
 }

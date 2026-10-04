@@ -1,5 +1,4 @@
-import { setFlag } from './flags.js';
-import { findDerived } from './item.js';
+import { findMoveDerivations, relinkMoveDerivations } from './move-links.js';
 import { ProcessingDialog } from './processingDialog.js';
 
 /**
@@ -13,10 +12,9 @@ import { ProcessingDialog } from './processingDialog.js';
  * @param {boolean} [destination.relink] - Whether to update derivations of the item in other compendiums.
  * @returns {Promise<void>} - A promise that resolves when the item is successfully moved.
  */
-async function moveItem(item, destination, processor) {
-	const freq = findDerived();
-	const derivations = freq[item.uuid] ?? [];
-	const steps = derivations.length + 2;
+export async function moveItem(item, destination, processor) {
+	const derivations = destination.relink ? await findMoveDerivations([item.uuid]) : new Map();
+	const steps = (derivations.get(item.uuid)?.length ?? 0) + 2;
 	let step = 1;
 	const updateStep = () => {
 		const progress = (100 * step++) / steps;
@@ -30,14 +28,12 @@ async function moveItem(item, destination, processor) {
 	if (destination.folder) data.folder = destination.folder;
 	const newItem = await item.constructor.create(data, { pack: destination.pack, keepId: destination.keepId });
 	updateStep();
-	if (destination.relink && derivations.length) {
-		for (const derivation of derivations) {
-			setFlag(derivation, 'baseItem', newItem.uuid);
-			updateStep();
-		}
+	if (destination.relink) {
+		await relinkMoveDerivations(derivations, new Map([[item.uuid, newItem.uuid]]), updateStep);
 		ui.notifications.info(`Item ${item.name} derivations updated`);
 	}
-	item.delete();
+	await item.delete();
+	updateStep();
 	ui.notifications.info(`Item ${item.name} moved to ${destination.pack}`);
 }
 
@@ -133,7 +129,7 @@ export async function moveToAnotherCompendium(li, html) {
  * @param {boolean} destination.relink - Whether to update derivation links in the destination compendium.
  * @returns {Promise<boolean>} - A promise that resolves to true if the folder was successfully moved, false otherwise.
  */
-async function moveFolder(folder, destination, processor) {
+export async function moveFolder(folder, destination, processor) {
 	async function transformItemDataToItem(folder) {
 		folder.contents = await folder.compendium.getDocuments({ folder: folder.id });
 		const items = folder.contents;
@@ -143,9 +139,9 @@ async function moveFolder(folder, destination, processor) {
 		return items;
 	}
 	const items = await transformItemDataToItem(folder);
-	const freq = findDerived();
-	const derivationsMap = new Map(items.map((item) => [item, freq[folder.compendium.getUuid(item.id)] ?? []]));
-	const steps = derivationsMap.size + 2;
+	const baseUuids = items.map((item) => folder.compendium.getUuid(item.id));
+	const derivations = destination.relink ? await findMoveDerivations(baseUuids) : new Map();
+	const steps = [...derivations.values()].reduce((total, matches) => total + matches.length, 0) + 2;
 	let step = 1;
 	const updateStep = () => {
 		const progress = (100 * step++) / steps;
@@ -162,22 +158,19 @@ async function moveFolder(folder, destination, processor) {
 	});
 	updateStep();
 	try {
-		if (destination.relink && derivationsMap.size) {
-			for (const [key, derivations] of derivationsMap.entries()) {
-				await Promise.all(
-					derivations.map((derivation) =>
-						setFlag(derivation, 'baseItem', `Compendium.${targetPack.metadata.id}.Item.${key.id}`)
-					)
-				);
-				updateStep();
-			}
+		if (destination.relink) {
+			const replacements = new Map(items.map((item) => [
+				folder.compendium.getUuid(item.id), targetPack.getUuid(item.id),
+			]));
+			await relinkMoveDerivations(derivations, replacements, updateStep);
 		}
 		ui.notifications.info(`Folder ${folder.name} derivations updated`);
 	} catch {
 		ui.notifications.error(`Folder ${folder.name} derivations failed to update. Base folder was not deleted.`);
 		return false;
 	}
-	folder.delete({ deleteSubfolders: true, deleteContents: true });
+	await folder.delete({ deleteSubfolders: true, deleteContents: true });
+	updateStep();
 	ui.notifications.info(`Folder ${folder.name} moved to ${destination.pack}`);
 	return true;
 }
@@ -265,4 +258,3 @@ export async function moveFolderToAnotherCompendium(header, html) {
 	dialog.render(true);
 	return dialog;
 }
-

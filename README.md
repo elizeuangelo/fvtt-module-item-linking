@@ -20,6 +20,8 @@ Compendium items become **Templates** and items can now be linked to them.
 
 Dragging a linked item into chat, a journal editor, or a sheet text editor creates a UUID link to its base template, using the dragged item's name (or the editor's custom label). This applies to editors using Foundry's standard content-link creation. Inventory transfers still use the dragged item itself. Unlinked items use their own UUID, and existing text links are unchanged.
 
+Moving an item or folder to another compendium with **Relink Derived Items** checked also updates linked inventory items on actors in all unlocked world Actor compendiums. Packs are loaded for the move even if they have not been opened. Locked packs and packs supplied by modules or systems are skipped; compendium lock states are never changed. Unlock a world Actor compendium before moving to include it in the scan. If a link update fails, the original item or folder is retained; the destination copy and any completed link updates remain.
+
 ### Sponsor: [TCR (The Cracked Realms)](https://discord.gg/WNpQn6YtdN)
 
 This module was comissioned for their _Westmeath_ server as they are trying to create an MMO variant of DnD 5e.
