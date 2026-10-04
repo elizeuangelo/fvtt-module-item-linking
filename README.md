@@ -18,6 +18,8 @@ In the setup screen, use the manifest URL https://raw.githubusercontent.com/eliz
 
 Compendium items become **Templates** and items can now be linked to them.
 
+Dragging a linked item into chat, a journal editor, or a sheet text editor creates a UUID link to its base template, using the dragged item's name (or the editor's custom label). This applies to editors using Foundry's standard content-link creation. Inventory transfers still use the dragged item itself. Unlinked items use their own UUID, and existing text links are unchanged.
+
 ### Sponsor: [TCR (The Cracked Realms)](https://discord.gg/WNpQn6YtdN)
 
 This module was comissioned for their _Westmeath_ server as they are trying to create an MMO variant of DnD 5e.

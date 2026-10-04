@@ -55,6 +55,20 @@ function fromDropData() {
 	CONFIG.Item.documentClass.implementation.fromDropData = fromDropData;
 }
 
+function createDocumentLink() {
+	const prototype = CONFIG.Item.documentClass.prototype;
+	const original = prototype._createDocumentLink;
+	prototype._createDocumentLink = function (eventData, options = {}) {
+		// Redirect text links only; inventory transfers still use the dragged item's UUID.
+		if (!this.compendium && LinkedItemResolver.isLinked(this)) {
+			const baseUuid = LinkedItemResolver.getBaseUuid(this);
+			return `@UUID[${baseUuid}]{${options.label ?? this.name}}`;
+		}
+		return original.call(this, eventData, options);
+	};
+}
+
 Hooks.once('ready', () => {
 	fromDropData();
+	createDocumentLink();
 });

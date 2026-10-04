@@ -67,6 +67,12 @@ export async function fixture() {
 	const game = { actors: collection(), items: collection(), scenes: { contents: [] }, user: { id: 'gm', isGM: true } };
 	class Document {
 		getFlag(moduleId, key) { return getProperty(this._source, `flags.${moduleId}.${key}`); }
+		get name() { return this._source.name; }
+		toDragData() { return { type: this.constructor.name, uuid: this.uuid }; }
+		_createDocumentLink(eventData, { relativeTo, label } = {}) {
+			const uuid = relativeTo && relativeTo === this.parent ? `.Item.${this.id}` : this.uuid;
+			return `@UUID[${uuid}]{${label ?? this.name}}`;
+		}
 	}
 	class Actor extends Document {
 		constructor(source = { _id: 'actor', items: [] }, token) {
@@ -83,7 +89,7 @@ export async function fixture() {
 		static metadata = { embedded: { ActiveEffect: 'effects' } };
 		static get implementation() { return this; }
 		static shimData(data) { return data; }
-		static async fromDropData() { return undefined; }
+		static async fromDropData(data) { return data.data ? new this(data.data) : documents.get(data.uuid); }
 		constructor(source, parent) {
 			super();
 			this._source = structuredClone(source);
@@ -95,6 +101,14 @@ export async function fixture() {
 		prepareFinalAttributes() {}
 	}
 	const documents = new Map();
+	const TextEditor = {
+		async getContentLink(eventData, options = {}) {
+			const cls = { Item, Actor }[eventData.type];
+			if (!cls) return null;
+			const document = await cls.fromDropData(eventData);
+			return document?._createDocumentLink(eventData, options) ?? null;
+		},
+	};
 	const context = vm.createContext({
 		console, structuredClone, game, randomID: () => 'copied-actor', fromUuid: async (uuid) => documents.get(uuid),
 		CONFIG: { Actor: { documentClass: Actor }, Item: { documentClass: Item } },
@@ -138,5 +152,5 @@ export async function fixture() {
 	const data = await load('link-data.js');
 	const resolver = (await load('link-resolver.js')).default;
 	await load('core.js');
-	return { settings, hooks, readyHooks, game, Actor, Item, documents, data, resolver, load, mergeObject };
+	return { settings, hooks, readyHooks, game, Actor, Item, TextEditor, documents, data, resolver, load, mergeObject };
 }
