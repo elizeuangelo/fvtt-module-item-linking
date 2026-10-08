@@ -120,7 +120,7 @@ export async function fixture() {
 			abstract: { Document, DataModel: { prototype: { toObject() { return structuredClone(this._source); } } } },
 			utils: {
 				getType: (value) => value === null ? 'null' : Array.isArray(value) ? 'Array' : isObject(value) ? 'Object' : typeof value,
-				deepClone: structuredClone, getProperty, setProperty, expandObject, mergeObject, diffObject, flattenObject,
+				deepClone: structuredClone, randomID: () => 'copied-actor', getProperty, setProperty, expandObject, mergeObject, diffObject, flattenObject,
 				isEmpty: (value) => Object.keys(value).length === 0,
 			},
 		},

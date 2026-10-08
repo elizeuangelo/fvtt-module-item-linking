@@ -1,3 +1,4 @@
+import { countArchived, findArchivedItems } from './archive-links.js';
 import { findDerived } from './item.js';
 import { findItems } from './findItems.js';
 import { moveFolderToAnotherCompendium, moveToAnotherCompendium } from './moveToAnotherCompendium.js';
@@ -10,6 +11,7 @@ import { relinkActorsCompendiumApp } from './relink-actors-compendium.js';
  */
 function renderCompendium(pack, html) {
 	const freq = findDerived();
+	const archivedFreq = countArchived();
 	[...html.find('ol.directory-list li')].forEach((li) => {
 		const uuid = 'Compendium.' + pack.metadata.id + '.Item.' + li.dataset.documentId;
 		const frequency = freq[uuid]?.length;
@@ -19,7 +21,45 @@ function renderCompendium(pack, html) {
 					`<b class="link-derivations" data-tooltip="${frequency} derivations linked to this item">${frequency}</b>`
 				)[0]
 			);
+		const archived = archivedFreq[uuid];
+		if (archived)
+			li.append(
+				$(
+					`<b class="link-derivations archived" data-tooltip="${archived} derivations archived in Actor compendiums">${archived}</b>`
+				)[0]
+			);
 	});
+}
+
+/**
+ * Deletes every item derived from a compendium item, in the world and in unlocked world Actor compendiums.
+ * @param {jQuery} li - The list item element.
+ * @param {Compendium} html - The compendium application.
+ */
+async function deleteLinkedItems(li, html) {
+	const uuid = 'Compendium.' + html.metadata.id + '.Item.' + li[0].dataset.documentId;
+	const world = findDerived()[uuid] ?? [];
+	const stored = await findArchivedItems(uuid);
+	const archived = stored.filter((i) => !i.compendium.locked);
+	const locked = stored.length - archived.length;
+	const skipped = locked ? `${locked} items in locked compendiums will be kept.` : '';
+	const total = world.length + archived.length;
+	if (!total) return ui.notifications.info(`There are no items derived from this item. ${skipped}`);
+	const confirmed = await Dialog.confirm({
+		title: 'Delete All Linked Items',
+		content: `<p>Delete <b>${world.length}</b> linked items in the world and <b>${archived.length}</b> in Actor compendiums? ${skipped}</p>`,
+	});
+	if (!confirmed) return;
+	const actors = new Map();
+	for (const item of archived) {
+		if (!actors.has(item.parent)) actors.set(item.parent, []);
+		actors.get(item.parent).push(item.id);
+	}
+	await Promise.all([
+		...world.map((i) => i.delete()),
+		...[...actors].map(([actor, ids]) => actor.deleteEmbeddedDocuments('Item', ids)),
+	]);
+	ui.notifications.info(`${total} items deleted`);
 }
 
 /**
@@ -28,7 +68,7 @@ function renderCompendium(pack, html) {
  * @param {Array} entryOptions - The array of existing entry options.
  */
 function entryContextMenu(html, entryOptions) {
-	if (!game.user.isGM) return;
+	if (!game.user.isGM || html.metadata.type !== 'Item') return;
 	entryOptions.push(
 		{
 			name: 'Find Items',
@@ -44,15 +84,7 @@ function entryContextMenu(html, entryOptions) {
 		{
 			name: 'Delete All Linked Items',
 			icon: '<i class="fas fa-link-slash"></i>',
-			callback: (li) => {
-				const pack = html.metadata.id;
-				const freq = findDerived();
-				const uuid = 'Compendium.' + pack + '.Item.' + li[0].dataset.documentId;
-				const items = freq[uuid];
-				if (!items?.length) return ui.notifications.info(`There are no items derived from this item`);
-				items.forEach((i) => i.delete());
-				ui.notifications.info(`${items.length} items deleted`);
-			},
+			callback: (li) => deleteLinkedItems(li, html),
 		}
 	);
 }
@@ -63,7 +95,7 @@ function entryContextMenu(html, entryOptions) {
  * @param {Array} entryOptions - The array of entry options in the context menu.
  */
 function sidebarTabFolderContextMenu(html, entryOptions) {
-	if (!game.user.isGM) return;
+	if (!game.user.isGM || html.metadata?.type !== 'Item') return;
 	entryOptions.push({
 		name: 'Move Folder to Another Compendium',
 		icon: '<i class="fas fa-truck"></i>',

@@ -35,7 +35,8 @@ function preCreateItem(item) {
 		baseItem: null,
 		isLinked: false,
 	};
-	const isCompendium = Boolean(item.compendium);
+	// Items owned by an actor stored in a compendium are derivations, not templates.
+	const isCompendium = Boolean(item.compendium) && !item.isEmbedded;
 	const itemFlags = isCompendium ? baseFlags : item._source.flags['item-linking'] || baseFlags;
 	if (isCompendium === false && item.id) {
 		if (!itemFlags.isLinked && !itemFlags.baseItem) {

@@ -19,7 +19,7 @@ function getCompendiumFromLinkedItem(itemData) {
 }
 
 function canCreateOverrideButton(sheet) {
-	if (sheet.item.compendium) return false;
+	if (sheet.item.compendium && !sheet.item.isEmbedded) return false;
 	if (!getSetting('itemOverrides')) return false;
 	if (!canOverride(sheet.item)) return false;
 	return true;

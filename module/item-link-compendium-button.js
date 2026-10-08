@@ -10,7 +10,7 @@ function getCompendiumFromLinkedItem(item) {
 
 function canCreateCompendiumButton(sheet) {
 	if (!game.user.isGM) return false;
-	if (sheet.item.compendium) return false;
+	if (sheet.item.compendium && !sheet.item.isEmbedded) return false;
 	return true;
 }
 

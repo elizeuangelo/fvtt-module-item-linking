@@ -22,7 +22,9 @@ function toObject(source = true) {
 			preserveEffectState: this.parent instanceof CONFIG.Actor.documentClass,
 		}));
 	}
+	// Only items are templates; other compendium documents keep their flags untouched.
 	if (
+		this instanceof CONFIG.Item.documentClass &&
 		this.compendium &&
 		this.id &&
 		(!data.flags['item-linking']?.baseItem || data.flags['item-linking'].baseItem.at(-1) === '.')
@@ -41,7 +43,8 @@ function fromDropData() {
 	const systemFromDropData = CONFIG.Item.documentClass.implementation.fromDropData;
 	async function fromDropData(...args) {
 		const document = await systemFromDropData.call(this, ...args);
-		if (document?.compendium) {
+		// A derivation dragged out of a compendium actor keeps its own template.
+		if (document?.compendium && !(document.isEmbedded && LinkedItemResolver.getBaseUuid(document))) {
 			document.updateSource({
 				'flags.item-linking': {
 					baseItem: document.uuid,

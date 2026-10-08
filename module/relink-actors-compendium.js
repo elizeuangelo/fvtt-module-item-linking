@@ -1,3 +1,4 @@
+import { isArchivePack, rebuildArchiveLinks, syncActors } from './archive-links.js';
 import { ProcessingDialog } from './processingDialog.js';
 
 /**
@@ -9,11 +10,14 @@ export async function relinkActorsCompendiumApp() {
 	if (!packs.length) {
 		return ui.notifications.warn(game.i18n.format('FOLDER.ExportWarningNone', { type: this.type }));
 	}
-	const folders = game.folders.filter((f) => f.type === 'Actor');
+	const actorPacks = game.packs.filter(isArchivePack);
+	if (!actorPacks.length) {
+		return ui.notifications.warn(game.i18n.format('FOLDER.ExportWarningNone', { type: 'Actor' }));
+	}
 	const types = game.documentTypes.Item.filter((t) => t !== CONST.BASE_DOCUMENT_TYPE);
 	const content = await renderTemplate('modules/item-linking/templates/relink-actors.hbs', {
 		packs: packs.map((p) => ({ id: p.metadata.id, name: p.metadata.label })),
-		folders,
+		actorPacks: actorPacks.map((p) => ({ id: p.metadata.id, name: p.metadata.label })),
 		types: Object.fromEntries(
 			types.map((t) => [t, game.i18n.localize(CONFIG.Item.typeLabels[t])]).sort((a, b) => a[1].localeCompare(b[1]))
 		),
@@ -32,7 +36,7 @@ export async function relinkActorsCompendiumApp() {
 						const form = html[0].querySelector('form');
 						const data = new FormDataExtended(form);
 						if (form.reportValidity() === false) {
-							throw new Error(game.i18n.localize('You must select at least one pack and one folder'));
+							throw new Error(game.i18n.localize('You must select at least one item pack and one actor pack'));
 						}
 						try {
 							processor.process('Searching...');
@@ -41,6 +45,19 @@ export async function relinkActorsCompendiumApp() {
 							ui.notifications.error(err);
 						} finally {
 							processor.dialog.close();
+						}
+					},
+				},
+				archives: {
+					icon: '<i class="fas fa-box-archive"></i>',
+					label: 'Recount Archived Links',
+					callback: async () => {
+						try {
+							ui.notifications.info('Loading unlocked world Actor compendiums...');
+							const updated = await rebuildArchiveLinks();
+							ui.notifications.info(`Archived links recounted, ${updated} actors updated`);
+						} catch (err) {
+							ui.notifications.error(err);
 						}
 					},
 				},
@@ -55,46 +72,57 @@ export async function relinkActorsCompendiumApp() {
 /**
  * Searches the inventory for linked items and renders a dialog with the results.
  * @param {Object} data - The data object containing information about the inventory search.
- * @param {boolean} data.subfolders - Flag indicating whether to include subfolders in the search.
  * @param {boolean} data.hideUnmatched - Flag indicating whether to hide unmatched items.
  * @param {boolean} data.hideNpcs - Flag indicating whether to hide NPCs.
  * @param {string} data.typeFilter - The type of the item to search for.
  * @param {string[]} data.packs - An array of pack names to search for items.
- * @param {string[]} data.folders - An array of folder IDs to search for items.
+ * @param {string[]} data.actorPacks - An array of world Actor pack names whose actors are searched.
  * @returns {Promise<void>} - A promise that resolves when the inventory search is complete.
  */
 async function searchInventory(data, processor) {
-	const subfolders = data.subfolders;
 	const packs = data.packs.map((p) => game.packs.get(p));
-	const folders = [];
+	const actorPacks = data.actorPacks.map((p) => game.packs.get(p));
 	const packsItems = (await Promise.all(packs.map((p) => p.getDocuments()))).flat();
 	processor.label = `Searching... found ${packsItems.length} items in ${packs.length} packs`;
-	for (const id of data.folders) {
-		const folder = game.folders.get(id);
-		if (!folder) continue;
-		folders.push(folder);
-		if (subfolders) {
-			folders.push(...folder.getSubfolders(true));
-		}
+	// Selected packs stay unlocked while the results are open, so their items can be relinked.
+	const loaded = new Map();
+	const locked = [];
+	let restored = false;
+	async function restorePacks() {
+		if (restored) return;
+		restored = true;
+		for (const [pack, actors] of loaded) await syncActors(pack, actors);
+		for (const pack of locked) await pack.configure({ locked: true });
 	}
 	const entries = [];
-	let actors = game.actors.filter((a) => folders.includes(a.folder));
-	if (data.hideNpcs) {
-		actors = actors.filter((a) => a.type !== 'npc');
-	}
-	processor.label = `Searching... found ${actors.length} actors in ${folders.length} folders`;
-	for (const actor of actors) {
-		for (const item of actor.items) {
-			if (data.typeFilter && item.type !== data.typeFilter) continue;
-			const flags = item.flags['item-linking'];
-			if (!flags) continue;
-			const baseItem = flags.baseItem ? await fromUuid(flags.baseItem) : null;
-			const isLinked = flags.isLinked ?? false;
-			if (isLinked && baseItem) continue;
-			const similarItems = findSimilarItemsInCompendiums(item.name, item.type, packsItems);
-			if (similarItems.length === 0 && data.hideUnmatched) continue;
-			entries.push({ label: CONFIG.Item.typeLabels[item.type], actor, item, similarItems, baseItem, isLinked });
+	try {
+		for (const pack of actorPacks) {
+			if (!pack.locked) continue;
+			await pack.configure({ locked: false });
+			locked.push(pack);
 		}
+		for (const pack of actorPacks) {
+			const ids = pack.index.filter((a) => !data.hideNpcs || a.type !== 'npc').map((a) => a._id);
+			loaded.set(pack, await pack.getDocuments({ _id__in: ids }));
+		}
+		const actors = [...loaded.values()].flat();
+		processor.label = `Searching... found ${actors.length} actors in ${actorPacks.length} packs`;
+		for (const actor of actors) {
+			for (const item of actor.items) {
+				if (data.typeFilter && item.type !== data.typeFilter) continue;
+				const flags = item.flags['item-linking'];
+				if (!flags) continue;
+				const baseItem = flags.baseItem ? await fromUuid(flags.baseItem) : null;
+				const isLinked = flags.isLinked ?? false;
+				if (isLinked && baseItem) continue;
+				const similarItems = findSimilarItemsInCompendiums(item.name, item.type, packsItems);
+				if (similarItems.length === 0 && data.hideUnmatched) continue;
+				entries.push({ label: CONFIG.Item.typeLabels[item.type], actor, item, similarItems, baseItem, isLinked });
+			}
+		}
+	} catch (err) {
+		await restorePacks();
+		throw err;
 	}
 	const content = await renderTemplate('modules/item-linking/templates/relink-inventory.hbs', {
 		entries,
@@ -137,7 +165,7 @@ async function searchInventory(data, processor) {
 		{
 			title: 'Inventory Check',
 			content,
-			close: () => null,
+			close: () => restorePacks(),
 			default: 'ok',
 			buttons: {
 				ok: {
@@ -168,7 +196,7 @@ async function searchInventory(data, processor) {
 								const selectedUuid = select.value;
 								if (selectedUuid) {
 									const item = await fromUuid(button.dataset.uuid);
-									item.update({
+									await item.update({
 										'flags.item-linking.baseItem': selectedUuid,
 										'flags.item-linking.isLinked': true,
 									});

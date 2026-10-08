@@ -16,7 +16,7 @@ async function create(data, context) {
 		const data = actor.toObject?.() ?? actor;
 		createData.push(data);
 		if (!data.items?.length) continue;
-		data._id = randomID();
+		data._id = foundry.utils.randomID();
 		context.keepId = true;
 		const linked = data.items.filter((i) => MODULE_ID in i.flags && i.flags[MODULE_ID].isLinked);
 		for (const itemData of linked) {

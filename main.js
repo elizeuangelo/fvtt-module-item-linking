@@ -1,4 +1,5 @@
 import { applyFixes, checkFixes } from './fixes/fixes.js';
+import { loadArchiveIndex } from './module/archive-links.js';
 import { findDerived } from './module/item.js';
 import { MODULE_ID, getSetting } from './module/settings.js';
 import Logger from './module/lib/Logger.js';
@@ -21,11 +22,12 @@ Hooks.once('setup', async () => {
 Hooks.once('ready', async () => {
 	await initializeSystemSupport();
 	Logger.log('Successfully Initialized');
-	if (checkFixes()) {
+	if (game.user.isGM && checkFixes()) {
 		Logger.log(`Applying fixes since ${getSetting('update')}...`);
 		await applyFixes();
 		Logger.log(`All fixes applied`);
 	}
+	await loadArchiveIndex();
 	const derivations = findDerived();
 	Logger.log(`${Object.keys(derivations).length} data links derived`);
 	const hydrated = await LinkedItemResolver.hydrateAll();

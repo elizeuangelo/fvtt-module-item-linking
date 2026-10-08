@@ -81,3 +81,39 @@ test('unlinked items keep Foundry relative links and labels', async () => {
 	assert.equal(await fx.TextEditor.getContentLink(item.toDragData()), `@UUID[${item.uuid}]{Custom item name}`);
 	assert.equal(await fx.TextEditor.getContentLink(item.toDragData(), { relativeTo: actor, label: 'Label' }), '@UUID[.Item.local-item]{Label}');
 });
+
+async function compendiumActorItem(fx, flags) {
+	const actor = new fx.Actor({ _id: 'archived', items: [source(flags)] });
+	const item = actor.items.get('local-item');
+	item.compendium = { collection: 'world.archive' };
+	item.isEmbedded = true;
+	fx.documents.set(item.uuid, item);
+	return item;
+}
+
+test('a derivation dropped from a compendium actor keeps its template, while unlinked items link to themselves', async () => {
+	const fx = await readyFixture();
+	const linked = await compendiumActorItem(fx);
+	await fx.Item.fromDropData(linked.toDragData());
+	assert.equal(linked.getFlag('item-linking', 'baseItem'), baseUuid);
+	const unlinked = await compendiumActorItem(fx, { baseItem: null, isLinked: false });
+	await fx.Item.fromDropData(unlinked.toDragData());
+	assert.equal(unlinked.getFlag('item-linking', 'baseItem'), unlinked.uuid);
+});
+
+test('items created on a compendium actor keep their link flags, while templates are never linked', async () => {
+	const fx = await readyFixture();
+	fx.context.fromUuidSync = () => null;
+	Object.defineProperty(fx.Item.prototype, 'flags', { get() { return this._source.flags; } });
+	await fx.load('flags.js?real');
+	const preCreateItem = fx.hooks.get('preCreateItem').at(-1);
+	const embedded = await compendiumActorItem(fx);
+	preCreateItem(embedded);
+	assert.equal(embedded.getFlag('item-linking', 'baseItem'), baseUuid);
+	assert.equal(embedded.getFlag('item-linking', 'isLinked'), true);
+	const template = new fx.Item(source());
+	template.compendium = { collection: 'world.items' };
+	preCreateItem(template);
+	assert.equal(template.getFlag('item-linking', 'baseItem'), null);
+	assert.equal(template.getFlag('item-linking', 'isLinked'), false);
+});

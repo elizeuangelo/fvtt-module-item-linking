@@ -1,3 +1,4 @@
+import { findArchivedItems } from './archive-links.js';
 import { findDerived } from './item.js';
 
 /**
@@ -14,7 +15,7 @@ export async function findItems(li, html) {
 		return true;
 	}
 	function addListeners(html) {
-		html.find('.delete-button').on('click', async (ev) => {
+		html.find('.delete-button:not(.disabled)').on('click', async (ev) => {
 			const el = ev.currentTarget;
 			const uuid = el.dataset.uuid;
 			const deleted = await deleteItemFromActor(uuid);
@@ -24,8 +25,8 @@ export async function findItems(li, html) {
 	const pack = html.metadata.id;
 	const freq = findDerived();
 	const uuid = 'Compendium.' + pack + '.Item.' + li[0].dataset.documentId;
-	const derivations = freq[uuid];
-	if (!derivations?.length) return ui.notifications.info(`There are no items derived from this item`);
+	const derivations = [...(freq[uuid] ?? []), ...(await findArchivedItems(uuid))];
+	if (!derivations.length) return ui.notifications.info(`There are no items derived from this item`);
 	const content = /*html*/ `
         <style>
             table.list-linked {
@@ -35,6 +36,10 @@ export async function findItems(li, html) {
                 opacity: 0.5;
                 transition: opacity 0.5s ease;
                 pointer-events: none;
+            }
+            table.list-linked .delete-button.disabled {
+                opacity: 0.2;
+                cursor: default;
             }
         </style>
         <div style="max-height:300px;overflow:auto">
@@ -51,10 +56,16 @@ export async function findItems(li, html) {
 								.map(
 									(i) => `
                     <tr>
-                        <td>${i.actor?.link ?? '<i>World Items Collection</i>'}</td>
+                        <td>${i.actor?.link ?? '<i>World Items Collection</i>'}${
+										i.compendium
+											? ` <i class="fas fa-box-archive" data-tooltip="${Handlebars.escapeExpression(i.compendium.title)}"></i>`
+											: ''
+									}</td>
                         <td>${i.link}</td>
                         <td>
-                            <a class="delete-button" data-tooltip="Delete" data-uuid="${i.uuid}">
+                            <a class="delete-button${i.compendium?.locked ? ' disabled' : ''}" data-tooltip="${
+										i.compendium?.locked ? 'Compendium is locked' : 'Delete'
+									}" data-uuid="${i.uuid}">
                                 <i class="fa-solid fa-trash-can"></i>
                             </a>
                         </td>

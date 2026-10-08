@@ -1,5 +1,5 @@
 <form autocomplete="off">
-    <p class="notes">Please choose the target Compendium Packs and the Actor Folders to fix.</p>
+    <p class="notes">Please choose the target Compendium Packs and the world Actor Compendiums to fix. Locked Actor Compendiums are unlocked for the fix and locked again when the results are closed.</p>
     <div class="form-group">
         <label>{{ localize "Item Compendiums" }}</label>
         <div class="form-fields">
@@ -9,10 +9,10 @@
         </div>
     </div>
     <div class="form-group">
-        <label>{{ localize "Actor Folders" }}</label>
+        <label>{{ localize "Actor Compendiums" }}</label>
         <div class="form-fields">
-            <select name="folders" multiple="multiple" required>
-                {{selectOptions folders nameAttr="id" labelAttr="name"}}
+            <select name="actorPacks" multiple="multiple" required>
+                {{selectOptions actorPacks nameAttr="id" labelAttr="name"}}
             </select>
         </div>
     </div>
@@ -27,10 +27,6 @@
     </div>
     <fieldset>
         <legend>{{ localize "Relink Options" }}</legend>
-        <div class="form-group">
-            <label>{{ localize "Include Subfolders" }}</label>
-            <input type="checkbox" name="subfolders" checked />
-        </div>
         <div class="form-group">
             <label>Hide Unmatched Items</label>
             <input type="checkbox" name="hideUnmatched" checked />
