@@ -26,6 +26,7 @@ export const KEEP = [
 	'system.attuned',
 	'system.levels',
 	'system.advancement',
+	'system.container',
 ];
 
 function createOptionsFromPack(pack, type, selected) {
@@ -276,4 +277,3 @@ if (game.modules.get('magic-items-2')?.active) {
 	Hooks.on('renderItemSheet', renderItemSheet);
 	//Hooks.on('tidy5e-sheet.renderItemSheet', renderItemSheet);
 }
-
